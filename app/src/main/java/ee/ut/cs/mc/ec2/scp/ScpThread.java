@@ -5,6 +5,7 @@ import android.content.Context;
 import com.example.ec2.R;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 import java.io.FileInputStream;
@@ -19,6 +20,8 @@ public class ScpThread extends Thread {
     Context context;
     ExtendedJSch jsch;
 
+    String keyFileName;
+
     String username;
     String host;
     int port;
@@ -29,23 +32,25 @@ public class ScpThread extends Thread {
         this.jsch = new ExtendedJSch(ctx);
     }
 
-    public void configureSession(String username, String host, int port){
+    public void configureSession(String username, String host, int port, String keyFile){
         this.username = username;
         this.host = host;
         this.port = port;
+        this.keyFileName = keyFile;
+        try {
+            jsch.setIdentityKey(keyFileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSchException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void run() {
-        FileInputStream fis=null;
         try{
             String localFile = "file.txt";
             String remoteFile = "file.txt";
-
-            InputStream fileInStream = context.getResources().openRawResource(R.raw.file);
-            int filesize = fileInStream.available(); // this might provide unreliable results in some cases
-
-            jsch.setIdentityKey("massKey.pem");
 
             Session session = jsch.getSession(username, host, port);
             session.connect();
@@ -76,12 +81,14 @@ public class ScpThread extends Thread {
 //                }
 //            }
 
+            InputStream fileInStream = context.getResources().openRawResource(R.raw.file);
+            int filesize = fileInStream.available(); // this might provide unreliable results in some cases
+
             // send "C0644 filesize filename", where filename should not include '/'
             command="C0644 "+ filesize +" ";
-            if(localFile.lastIndexOf('/')>0){
+            if(localFile.lastIndexOf('/') > 0 ){
                 command += localFile.substring(localFile.lastIndexOf('/')+1);
-            }
-            else{
+            } else {
                 command += localFile;
             }
             command += "\n";
@@ -92,26 +99,24 @@ public class ScpThread extends Thread {
             failIfNotAcknowledged(remoteIn);
 
             // send a content of lfile
-//            fileInStream = this.getClass().getClassLoader().getResourceAsStream(filename);
             byte[] buf=new byte[1024];
             writeFileToRemoteOut(fileInStream, remoteOut, buf);
-
 
             // send '\0'
             buf[0]=0;
             remoteOut.write(buf, 0, 1);
             remoteOut.flush();
+//            remoteOut.write(0); //!TODO CHECK IF THIS ALSO WORKS
             failIfNotAcknowledged(remoteIn);
+
             remoteOut.close();
 
             channel.disconnect();
             session.disconnect();
-
-            System.exit(0);
         }
         catch(Exception e){
             System.out.println(e);
-            try{if(fis!=null)fis.close();}catch(Exception ee){}
+//            try{if(fis!=null)fis.close();}catch(Exception ee){}
         }
     }
 
