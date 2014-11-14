@@ -35,5 +35,15 @@
         android:layout_marginTop="36dp"
         android:onClick="terminateInstance"
         />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_do_scop"
+        android:id="@+id/btn_doSCP"
+        android:layout_below="@+id/btn_terminate_instance"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="36dp"
+        android:onClick="doSCP"
+        />
 
 </RelativeLayout>

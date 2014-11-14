@@ -7,5 +7,6 @@
     <string name="button_startinstance">Start Instance</string>
     <string name="button_start_instance">Start Instance</string>
     <string name="button_terminate_instance">Terminate Instance</string>
+    <string name="button_do_scop">Send file</string>
 
 </resources>

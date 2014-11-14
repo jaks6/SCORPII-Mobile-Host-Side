@@ -2,6 +2,7 @@ package ee.ut.cs.mc.ec2;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,19 +12,20 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.example.ec2.R;
 
 import java.io.IOException;
+import java.io.InputStream;
 
-import ee.ut.cs.mc.ec2.aws.OnAwsUpdate;
 import ee.ut.cs.mc.ec2.aws.Client;
-import ee.ut.cs.mc.ec2.aws.InstanceLauncher;
 import ee.ut.cs.mc.ec2.aws.LaunchConfiguration;
-import ee.ut.cs.mc.ec2.aws.RunInstanceTask;
-import ee.ut.cs.mc.ec2.scp.ScpThread;
+import ee.ut.cs.mc.ec2.aws.OnAwsUpdate;
+import ee.ut.cs.mc.ec2.scp.ScpManager;
 import ee.ut.cs.mc.ec2.scp.SshThread;
 
 public class MainActivity extends Activity implements OnAwsUpdate {
     public static final String SHELL_USER = "ubuntu";
     public static final String KEY_FILE = "jakobmass.pem";
     public static final int PORT = 22;
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String SHELL_SCRIPT = "/assets/setup.sh";
     TextView consoleTextView;
     Client ec2Client;
 
@@ -45,10 +47,18 @@ public class MainActivity extends Activity implements OnAwsUpdate {
         sshThread.start();
     }
 
-    public void doSCP(String ip) {
-        ScpThread fileTransferThread = new ScpThread(this);
-        fileTransferThread.configureSession(SHELL_USER, ip, PORT, KEY_FILE);
-        fileTransferThread.start();
+    public void doSCP(View v) {
+        Log.v(TAG, "Started doSCP method");
+        if (ec2Client != null){
+            ScpManager scp = new ScpManager(this);
+            scp.configureSession(SHELL_USER, ec2Client.getInstance().getPublicIpAddress(), PORT, KEY_FILE);
+//            scp.transferFile(getClass().getResourceAsStream(R.raw.file));
+
+            InputStream shellScriptInputStream = getClass().getResourceAsStream(SHELL_SCRIPT);
+            scp.transferFile(shellScriptInputStream, "setup.sh");
+        } else {
+            showInUi("ERROR - tried doing SCP with instance null!");
+        }
     }
 
     public void launchInstance() {
