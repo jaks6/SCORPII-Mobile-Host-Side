@@ -1,3 +1,6 @@
+#AWS keys
+*.pem
+
 # Built application files
 *.apk
 *.ap_

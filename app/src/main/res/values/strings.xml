@@ -4,5 +4,8 @@
     <string name="app_name">EC2</string>
     <string name="console_default">Idle.</string>
     <string name="action_settings">Settings</string>
+    <string name="button_startinstance">Start Instance</string>
+    <string name="button_start_instance">Start Instance</string>
+    <string name="button_terminate_instance">Terminate Instance</string>
 
 </resources>

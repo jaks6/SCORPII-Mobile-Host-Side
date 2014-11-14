@@ -17,20 +17,23 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start Instance"
+        android:text="@string/button_start_instance"
         android:id="@+id/btn_start_instance"
         android:layout_marginTop="105dp"
         android:layout_below="@+id/textview_console"
         android:onClick="startInstance"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignStart="@+id/btn_terminate_instance"
+        android:layout_alignEnd="@+id/btn_terminate_instance" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Terminate instance"
+        android:text="@string/button_terminate_instance"
         android:id="@+id/btn_terminate_instance"
         android:layout_below="@+id/btn_start_instance"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="36dp" />
+        android:layout_marginTop="36dp"
+        android:onClick="terminateInstance"
+        />
 
 </RelativeLayout>
