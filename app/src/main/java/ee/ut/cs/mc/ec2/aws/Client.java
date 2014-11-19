@@ -1,14 +1,12 @@
 package ee.ut.cs.mc.ec2.aws;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
-import com.amazonaws.services.ec2.model.TerminateInstancesResult;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import ee.ut.cs.mc.ec2.MainActivity;
 
@@ -17,7 +15,7 @@ public class Client{
 	private static final String EC2_AWS_CREDENTIALS_PROPERTIES = "/assets/AwsCredentials.properties";
 	String endPoint;
 	AWSCredentials credentials;
-	AmazonEC2Client amazonEC2Client;
+	AmazonEC2Client ec2Client;
     Instance instance;
 
 	
@@ -25,14 +23,14 @@ public class Client{
 		InputStream credentialsInputStream = getClass().getResourceAsStream(EC2_AWS_CREDENTIALS_PROPERTIES);
 		credentials = new PropertiesCredentials(credentialsInputStream);
 
-		amazonEC2Client = new AmazonEC2Client(credentials);
+		ec2Client = new AmazonEC2Client(credentials);
 		
 //		By default, the service endpoint is ec2.us-east-1.amazonaws.com. 
-		amazonEC2Client.setEndpoint(endPoint);
+		ec2Client.setEndpoint(endPoint);
 	}
 
-	public AmazonEC2Client getAmazonEC2Client() {
-		return amazonEC2Client;
+	public AmazonEC2Client getEc2Client() {
+		return ec2Client;
 	}
 
     public Instance getInstance() {

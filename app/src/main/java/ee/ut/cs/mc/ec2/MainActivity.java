@@ -55,6 +55,9 @@ public class MainActivity extends Activity implements OnAwsUpdate {
             ScpManager scp = new ScpManager();
             scp.configureSession(SHELL_USER, ec2Client.getInstance().getPublicIpAddress(), PORT, getAssets(),KEY_FILE);
             scp.sendFile(getAssets(), BPEL);
+            scp.sendFile(getAssets(), SHELL_SCRIPT);
+
+
 
         } else {
             showInUi("ERROR - tried doing SCP with instance null!");

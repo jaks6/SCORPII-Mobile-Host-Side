@@ -8,7 +8,6 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 import com.amazonaws.services.ec2.model.Tag;
-import com.amazonaws.util.JodaTime;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -24,7 +23,7 @@ public class InstanceLauncher {
 	
 	
 	public InstanceLauncher(Client client, LaunchConfiguration config) {
-		this.amazonEC2Client = client.getAmazonEC2Client();
+		this.amazonEC2Client = client.getEc2Client();
 		this.config = config;
 	}
 

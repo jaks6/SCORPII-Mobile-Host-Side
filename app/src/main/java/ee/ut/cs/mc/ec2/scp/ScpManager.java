@@ -18,7 +18,6 @@ import java.io.OutputStream;
 public class ScpManager {
 
     public final String TAG = ScpManager.class.getSimpleName();
-//    Context context;
     ExtendedJSch jsch;
 
     String keyFileName;
@@ -47,30 +46,47 @@ public class ScpManager {
         }
     }
 
-    public void transferFile(final InputStream fileInStream, String filename, final Long size) {
+    public void initFileTransfer(final InputStream fileInStream, String filename, final Long size) {
         final String localFile = filename;
         final String remoteFile = localFile;
 
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    session = jsch.getSession(username, host, port);
-                    session.connect();
+                    openToChannelAndTransfer(remoteFile, localFile, fileInStream, size);
 
-                    connectToChannelAndTransfer(remoteFile, localFile, fileInStream, size);
-
-                    session.disconnect();
                 } catch (Exception e) {
                     Log.e(TAG, e.toString());
                 }
             }
-            }).start();
+        }).start();
     }
 
-    private void connectToChannelAndTransfer(String remoteFile, String localFile, InputStream fileInStream, Long size) throws JSchException, IOException {
+    public void createSession() {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    session = jsch.getSession(username, host, port);
+                    session.connect();
+                } catch (Exception e) {
+                    Log.e(TAG, e.toString());
+                }
+            }
+        }).start();
+    }
+    public void killSession() {
+        new Thread(new Runnable() {
+            public void run() {
+                    session.disconnect();
+                    session = null;
+            }
+        }).start();
+    }
+
+    private void openToChannelAndTransfer(String remoteFile, String localFile, InputStream fileInStream, Long size) throws JSchException, IOException {
         // exec 'scp -t rfile' remotely
         String command = "scp -t " + remoteFile;
-        Channel channel = getChannelWithCommand(command);
+        Channel channel = openChannelWithCommand(command);
         channel.connect();
 
         // get I/O streams for remote scp
@@ -105,7 +121,7 @@ public class ScpManager {
         remoteIn.close();
     }
 
-    private Channel getChannelWithCommand(String command) throws JSchException {
+    private Channel openChannelWithCommand(String command) throws JSchException {
         Channel channel = session.openChannel("exec");
         ((ChannelExec) channel).setCommand(command);
         return channel;
@@ -155,17 +171,52 @@ public class ScpManager {
         return b;
     }
 
+    protected void connectAndRunCommand(String command) throws Exception {
+        Log.i(TAG, "starting session connect");
+        Session session=jsch.getSession(username, host, port);
+        session.connect();
+
+        Channel channel = openChannelWithCommand(command);
+        channel.connect();
+
+        readAndLogResponse((ChannelExec)channel);
+
+        channel.disconnect();
+        session.disconnect();
+    }
+
+    private void readAndLogResponse(final ChannelExec channel) throws IOException, InterruptedException {
+        InputStream input = channel.getInputStream();
+
+        //start reading the input from the executed commands on the shell
+        byte[] tmp = new byte[1024];
+//        Thread.sleep(1000);
+        while (input.available() > 0) {
+            int i = input.read(tmp, 0, 1024);
+            if (i < 0) break;
+            final String response = new String(tmp, 0, i);
+            Log.i(TAG, response);
+        }
+        if (channel.isClosed()){
+            final int exitStatus = channel.getExitStatus();
+            Log.i(TAG, "" + exitStatus);
+        }
+    }
+
 
     /** Gets the given files InputStream and length,
-     *  calls the transferFile function with these values
+     *  calls the initFileTransfer function with these values
      * @param assets
      * @param assetName
      */
     public void sendFile(AssetManager assets, String assetName) {
         try {
             Long length = assets.openFd(assetName).getLength();
-            InputStream bpelZipStream = assets.open(assetName);
-            transferFile(bpelZipStream, "setup.sh", length);
+            InputStream inputStream = assets.open(assetName);
+
+            createSession();
+            initFileTransfer(inputStream, assetName, length);
+            killSession();
         } catch (IOException e) {
             Log.e(TAG, e.toString());
         }

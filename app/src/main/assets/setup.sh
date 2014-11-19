@@ -8,6 +8,9 @@ apt-get update
 apt-get install tomcat7 -y
 apt-get install wget
 apt-get install unzip
+#####################################################
+##  APACHE ODE
+#####################################################
 wget $APACHEODE_URL -O ode.zip
 ##move .war file from the zip to tomcat webapps
 unzip -j "ode.zip" "apache-ode-war-1.3.6/ode.war" -d "/var/lib/tomcat7/webapps/"
@@ -20,3 +23,4 @@ rm ode.zip
 unzip -j "bpel.zip" -d "var/lib/tomcat7/webapps/ode/temp"
 ##Set owner of the process directory to tomcat7
 chown -R tomcat7 var/lib/tomcat7/webapps/ode/temp
+mv var/lib/tomcat7/webapps/ode/temp/* /var/lib/tomcat7/webapps/ode/WEB-INF/processes

@@ -13,7 +13,7 @@ public class TerminateInstanceTask extends AsyncTask<Client, Void, Void> {
     protected Void doInBackground(Client... args) {
         Client awsClient = args[0];
         TerminateInstancesResult result =
-                awsClient.getAmazonEC2Client().terminateInstances(new TerminateInstancesRequest()
+                awsClient.getEc2Client().terminateInstances(new TerminateInstancesRequest()
                         .withInstanceIds(awsClient.getInstance().getInstanceId()));
         return null;
 
