@@ -12,7 +12,6 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.example.ec2.R;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import ee.ut.cs.mc.ec2.aws.Client;
 import ee.ut.cs.mc.ec2.aws.LaunchConfiguration;
@@ -21,11 +20,18 @@ import ee.ut.cs.mc.ec2.scp.ScpManager;
 import ee.ut.cs.mc.ec2.scp.SshThread;
 
 public class MainActivity extends Activity implements OnAwsUpdate {
-    public static final String SHELL_USER = "ubuntu";
-    public static final String KEY_FILE = "jakobmass.pem";
-    public static final int PORT = 22;
+
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String SHELL_SCRIPT = "/assets/setup.sh";
+
+    //For SSH-ing into EC2 instance
+    private static final String SHELL_USER = "ubuntu";
+    private static final String KEY_FILE = "jakobmass.pem";
+    private static final int PORT = 22;
+
+    //FILES
+    private static final String SHELL_SCRIPT = "setup.sh";
+    private static final String BPEL = "bpel.zip";
+
     TextView consoleTextView;
     Client ec2Client;
 
@@ -35,11 +41,6 @@ public class MainActivity extends Activity implements OnAwsUpdate {
         setContentView(R.layout.activity_main);
 
         consoleTextView = (TextView) findViewById(R.id.textview_console);
-
-        //launchInstance();
-
-//        connectSSH();
-//        doSCP();
     }
 
     private void connectSSH() {
@@ -49,13 +50,12 @@ public class MainActivity extends Activity implements OnAwsUpdate {
 
     public void doSCP(View v) {
         Log.v(TAG, "Started doSCP method");
-        if (ec2Client != null){
-            ScpManager scp = new ScpManager(this);
-            scp.configureSession(SHELL_USER, ec2Client.getInstance().getPublicIpAddress(), PORT, KEY_FILE);
-//            scp.transferFile(getClass().getResourceAsStream(R.raw.file));
 
-            InputStream shellScriptInputStream = getClass().getResourceAsStream(SHELL_SCRIPT);
-            scp.transferFile(shellScriptInputStream, "setup.sh");
+        if (ec2Client != null){
+            ScpManager scp = new ScpManager();
+            scp.configureSession(SHELL_USER, ec2Client.getInstance().getPublicIpAddress(), PORT, getAssets(),KEY_FILE);
+            scp.sendFile(getAssets(), BPEL);
+
         } else {
             showInUi("ERROR - tried doing SCP with instance null!");
         }
@@ -65,9 +65,9 @@ public class MainActivity extends Activity implements OnAwsUpdate {
         try {
             ec2Client = new Client("ec2.us-east-1.amazonaws.com");
             ec2Client.launchInstance(new LaunchConfiguration(
-                            "t1.micro",            //instance type
-                            "ami-98aa1cf0",        // machine image
-                            "jakob.mass",            // key
+                            "t1.micro",          //instance type
+                            "ami-98aa1cf0",      // machine image
+                            "jakob.mass",        // key
                             "sg-001c416a"        //security group
                     ),this);
         } catch (IOException e) {

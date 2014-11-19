@@ -20,13 +20,13 @@ public class SshClient {
 
     public SshClient(MainActivity activity) {
         this.activity = activity;
-        this.jsch = new ExtendedJSch(activity);
+        this.jsch = new ExtendedJSch();
     }
 
     protected void connectAndRunCommand() throws Exception {
         Log.i(TAG, "starting session connect");
 
-        jsch.setIdentityKey("massKey.pem");
+        jsch.setIdentityKey(activity.getAssets(),"massKey.pem");
 
         username = "ubuntu";
         host = "54.68.46.234";

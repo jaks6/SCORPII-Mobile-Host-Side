@@ -1,6 +1,7 @@
 package ee.ut.cs.mc.ec2.scp;
 
-import android.content.Context;
+import android.content.res.AssetManager;
+import android.util.Log;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -15,7 +16,9 @@ import java.io.OutputStream;
  * Created by Jakob on 14.11.2014.
  */
 public class ScpManager {
-    Context context;
+
+    public final String TAG = ScpManager.class.getSimpleName();
+//    Context context;
     ExtendedJSch jsch;
 
     String keyFileName;
@@ -26,18 +29,17 @@ public class ScpManager {
 
     Session session;
 
-    public ScpManager(Context ctx) {
-        this.context = ctx;
-        this.jsch = new ExtendedJSch(ctx);
+    public ScpManager() {
+        this.jsch = new ExtendedJSch();
     }
 
-    public void configureSession(String username, String host, int port, String keyFile) {
+    public void configureSession(String username, String host, int port, AssetManager manager, String keyFile) {
         this.username = username;
         this.host = host;
         this.port = port;
         this.keyFileName = keyFile;
         try {
-            jsch.setIdentityKey(keyFileName);
+            jsch.setIdentityKey(manager, keyFileName);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSchException e) {
@@ -45,19 +47,7 @@ public class ScpManager {
         }
     }
 
-//    public void transferFile(String filename){
-//        new Thread(new Runnable() {
-//            public void run() {
-////                Bitmap b = loadImageFromNetwork("http://example.com/image.png");
-////                mImageView.setImageBitmap(b);
-//            }
-//        }).start();
-//
-//    }
-
-    public void transferFile(final InputStream fileInStream, String filename) {
-//        final InputStream fileInStream = context.getResources().openRawResource(fileResource);
-//        final InputStream fInStream = fileInStream.;
+    public void transferFile(final InputStream fileInStream, String filename, final Long size) {
         final String localFile = filename;
         final String remoteFile = localFile;
 
@@ -67,51 +57,33 @@ public class ScpManager {
                     session = jsch.getSession(username, host, port);
                     session.connect();
 
-                    boolean ptimestamp = true; //preserve timestamps of original file?
-                    execTransferCommands(ptimestamp, remoteFile, localFile, fileInStream);
+                    connectToChannelAndTransfer(remoteFile, localFile, fileInStream, size);
 
                     session.disconnect();
                 } catch (Exception e) {
-                    System.out.println(e);
-//            try{if(fis!=null)fis.close();}catch(Exception ee){}
+                    Log.e(TAG, e.toString());
                 }
             }
             }).start();
     }
 
-    private void execTransferCommands(boolean ptimestamp, String remoteFile, String localFile,InputStream fileInStream) throws JSchException, IOException {
+    private void connectToChannelAndTransfer(String remoteFile, String localFile, InputStream fileInStream, Long size) throws JSchException, IOException {
         // exec 'scp -t rfile' remotely
-        String command = "scp " + (ptimestamp ? "-p" : "") + " -t " + remoteFile;
+        String command = "scp -t " + remoteFile;
         Channel channel = getChannelWithCommand(command);
+        channel.connect();
 
         // get I/O streams for remote scp
         OutputStream remoteOut = channel.getOutputStream();
         InputStream remoteIn = channel.getInputStream();
-
-        channel.connect();
         failIfNotAcknowledged(remoteIn);
 
-//            if(ptimestamp){
-//                command="T "+(_lfile.lastModified()/1000)+" 0";
-//            // The access time should be sent here,
-//            // but it is not accessible with JavaAPI ;-<
-//                command+=(" "+(_lfile.lastModified()/1000)+" 0\n");
-//                remoteOut.write(command.getBytes()); remoteOut.flush();
-//                if(checkAck(remoteIn)!=0){
-//                    System.exit(0);
-//                }
-//            }
-
-        int filesize = fileInStream.available(); // this might provide unreliable results in some cases
-
         // send "C0644 filesize filename", where filename should not include '/'
-        command = "C0644 " + filesize + " ";
+        command = "C0644 " + size + " ";
         if (localFile.lastIndexOf('/') > 0) {
-            command += localFile.substring(localFile.lastIndexOf('/') + 1);
-        } else {
-            command += localFile;
+            localFile= localFile.substring(localFile.lastIndexOf('/') + 1);
         }
-        command += "\n";
+        command += localFile + "\n";
 
         remoteOut.write(command.getBytes());
         remoteOut.flush();
@@ -143,11 +115,11 @@ public class ScpManager {
         while (true) {
             int len = fileInStream.read(buf, 0, buf.length);
             if (len <= 0) break;
-            remoteOut.write(buf, 0, len); //out.flush();
-
+            remoteOut.write(buf, 0, len);
+            remoteOut.flush();
         }
         fileInStream.close();
-        fileInStream = null;
+//        fileInStream = null;
     }
 
     private void failIfNotAcknowledged(InputStream remoteIn) throws IOException {
@@ -181,5 +153,21 @@ public class ScpManager {
             }
         }
         return b;
+    }
+
+
+    /** Gets the given files InputStream and length,
+     *  calls the transferFile function with these values
+     * @param assets
+     * @param assetName
+     */
+    public void sendFile(AssetManager assets, String assetName) {
+        try {
+            Long length = assets.openFd(assetName).getLength();
+            InputStream bpelZipStream = assets.open(assetName);
+            transferFile(bpelZipStream, "setup.sh", length);
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+        }
     }
 }
