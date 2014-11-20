@@ -22,8 +22,8 @@ public class InstanceLauncher {
 	private String TAG = InstanceLauncher.class.getName();
 	
 	
-	public InstanceLauncher(Client client, LaunchConfiguration config) {
-		this.amazonEC2Client = client.getEc2Client();
+	public InstanceLauncher(InstanceController instanceController, LaunchConfiguration config) {
+		this.amazonEC2Client = instanceController.getEc2Client();
 		this.config = config;
 	}
 

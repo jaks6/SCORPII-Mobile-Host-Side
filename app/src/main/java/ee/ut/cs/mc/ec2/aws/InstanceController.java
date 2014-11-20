@@ -18,8 +18,6 @@ public class InstanceController {
 
 	private static final String EC2_AWS_CREDENTIALS_PROPERTIES = "/assets/AwsCredentials.properties";
 
-
-
     String endPoint;
 	AWSCredentials credentials;
 	AmazonEC2Client ec2Client;
@@ -28,20 +26,19 @@ public class InstanceController {
     Context context;
 
 	
-	public InstanceController(Context context) throws Exception {
+	public InstanceController (Context context) throws Exception {
         context = context.getApplicationContext();
 
 		InputStream credentialsInputStream = getClass().getResourceAsStream(EC2_AWS_CREDENTIALS_PROPERTIES);
 
 		credentials = new PropertiesCredentials(credentialsInputStream);
         if (credentials.getAWSAccessKeyId().isEmpty() ||
-                credentials.getAWSAccessKeyId().isEmpty()){
+                credentials.getAWSSecretKey().isEmpty()){
             throw new Exception(context.getString(R.string.aws_credentials_missing_error));
-        } else {
+        }
+        else {
             ec2Client = new AmazonEC2Client(credentials);
 
-            //By default, the service endpoint is ec2.us-east-1.amazonaws.com.
-            if(!endPoint.isEmpty()) ec2Client.setEndpoint(endPoint);
         }
 	}
 

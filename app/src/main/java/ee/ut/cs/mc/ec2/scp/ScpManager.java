@@ -50,37 +50,25 @@ public class ScpManager {
         final String localFile = filename;
         final String remoteFile = localFile;
 
-        new Thread(new Runnable() {
-            public void run() {
                 try {
                     openToChannelAndTransfer(remoteFile, localFile, fileInStream, size);
 
                 } catch (Exception e) {
                     Log.e(TAG, e.toString());
                 }
-            }
-        }).start();
     }
 
     public void createSession() {
-        new Thread(new Runnable() {
-            public void run() {
                 try {
                     session = jsch.getSession(username, host, port);
                     session.connect();
                 } catch (Exception e) {
                     Log.e(TAG, e.toString());
                 }
-            }
-        }).start();
     }
     public void killSession() {
-        new Thread(new Runnable() {
-            public void run() {
                     session.disconnect();
                     session = null;
-            }
-        }).start();
     }
 
     private void openToChannelAndTransfer(String remoteFile, String localFile, InputStream fileInStream, Long size) throws JSchException, IOException {
@@ -171,18 +159,29 @@ public class ScpManager {
         return b;
     }
 
-    protected void connectAndRunCommand(String command) throws Exception {
+    public void sendCommand(String command) {
         Log.i(TAG, "starting session connect");
-        Session session=jsch.getSession(username, host, port);
-        session.connect();
+        Session session = null;
+        try {
+            session = jsch.getSession(username, host, port);
+            session.connect();
 
-        Channel channel = openChannelWithCommand(command);
-        channel.connect();
+            Channel channel = openChannelWithCommand(command);
+            channel.connect();
 
-        readAndLogResponse((ChannelExec)channel);
+            readAndLogResponse((ChannelExec)channel);
 
-        channel.disconnect();
-        session.disconnect();
+            channel.disconnect();
+            session.disconnect();
+
+
+        } catch (JSchException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void readAndLogResponse(final ChannelExec channel) throws IOException, InterruptedException {

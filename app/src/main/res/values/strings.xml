@@ -8,5 +8,9 @@
     <string name="button_start_instance">Start Instance</string>
     <string name="button_terminate_instance">Terminate Instance</string>
     <string name="button_do_scop">Send file</string>
+    <string name="aws_credentials_missing_error">
+        ERROR: EC2 Client setup failed.
+        You have not specified your AWS credentials
+        in the \'AwsCredentials.properties\' file</string>
 
 </resources>
