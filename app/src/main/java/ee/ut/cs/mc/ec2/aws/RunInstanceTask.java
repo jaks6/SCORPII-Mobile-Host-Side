@@ -25,7 +25,6 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
         RunInstancesResult result = launcher.launch();
 
         if (result.getReservation().getInstances().size() != 1) {
-            activity.showInUi("Launched instances count was not 1, something is wrong.");
             return null;
         } else {
             String instanceIP = null;
@@ -47,7 +46,7 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
                 try {
                     Thread.sleep(1500);
                 } catch (InterruptedException e) {
-                    activity.showInUi("Thread sleep interrupted exception:" + e);
+                    e.printStackTrace();
                 }
 
             }

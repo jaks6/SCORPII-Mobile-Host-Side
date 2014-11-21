@@ -15,6 +15,7 @@ public class TerminateInstanceTask extends AsyncTask<InstanceController, Void, V
         TerminateInstancesResult result =
                 awsInstanceController.getEc2Client().terminateInstances(new TerminateInstancesRequest()
                         .withInstanceIds(awsInstanceController.getInstance().getInstanceId()));
+        awsInstanceController.setInstance( null);
         return null;
 
     }

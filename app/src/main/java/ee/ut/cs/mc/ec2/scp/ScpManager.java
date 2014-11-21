@@ -167,18 +167,16 @@ public class ScpManager {
 
     public void sendCommand(String command) {
         Log.i(TAG, "starting session connect");
-        Session session = null;
         try {
-            session = jsch.getSession(username, host, port);
-            session.connect();
+            createSession();
 
             Channel channel = openChannelWithCommand(command);
             channel.connect();
 
             readAndLogResponse((ChannelExec)channel);
 
-            channel.disconnect();
-            session.disconnect();
+//            channel.disconnect();
+//            killSession();
 
 
         } catch (JSchException e) {
@@ -195,16 +193,20 @@ public class ScpManager {
 
         //start reading the input from the executed commands on the shell
         byte[] tmp = new byte[1024];
-//        Thread.sleep(1000);
-        while (input.available() > 0) {
-            int i = input.read(tmp, 0, 1024);
-            if (i < 0) break;
-            final String response = new String(tmp, 0, i);
-            Log.i(TAG, response);
-        }
-        if (channel.isClosed()){
-            final int exitStatus = channel.getExitStatus();
-            Log.i(TAG, "" + exitStatus);
+        while (true)
+        {
+            while (input.available() > 0)
+            {
+                int i = input.read(tmp, 0, 1024);
+                if (i < 0) break;
+                Log.i(TAG,new String(tmp, 0, i));
+            }
+            if (channel.isClosed())
+            {
+                Log.i(TAG, "" + channel.getExitStatus());
+                break;
+            }
+            Thread.sleep(1000);
         }
     }
     /** Gets the given files InputStream and length,

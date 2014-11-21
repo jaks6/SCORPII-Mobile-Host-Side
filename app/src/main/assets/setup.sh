@@ -20,6 +20,7 @@ rm ode.zip
 #####################################################
 ##  BPEL
 #####################################################
+##!TODO create the temp directory
 unzip -j "bpel.zip" -d "var/lib/tomcat7/webapps/ode/temp"
 ##Set owner of the process directory to tomcat7
 chown -R tomcat7 var/lib/tomcat7/webapps/ode/temp

@@ -6,20 +6,19 @@ import com.amazonaws.services.ec2.model.Instance;
 
 import ee.ut.cs.mc.ec2.MainActivity;
 
-public class ConnectToInstanceTask extends AsyncTask<InstanceConnector, String,Instance> {
-	MainActivity activity;
+public class ConnectToInstanceTask extends AsyncTask<Void, String,Instance> {
+    private final InstanceConnector connector;
+    MainActivity activity;
 
-	public ConnectToInstanceTask(MainActivity activity) {
+	public ConnectToInstanceTask(MainActivity activity, InstanceConnector instanceConnector) {
+        connector = instanceConnector;
 		this.activity = activity;
 	}
-	
-	@Override
-	protected Instance doInBackground(InstanceConnector... arg0) {
-        Instance instance = null;
 
-        InstanceConnector connector = arg0[0];
+	@Override
+	protected Instance doInBackground(Void... arg0) {
+        Instance instance = null;
         try {
-            activity.showInUi("Connecting to existing instance with id: " + connector.getInstanceId());
             instance = connector.launch();
         } catch (Exception e) {
             e.printStackTrace();
@@ -56,7 +55,7 @@ public class ConnectToInstanceTask extends AsyncTask<InstanceConnector, String,I
 
 	@Override
 	protected void onPreExecute() {
-		activity.showInUi("Starting 'instance launch task'");
+        activity.showInUi("Connecting to existing instance with id: " + connector.getInstanceId());
 	}
 
 	

@@ -45,7 +45,6 @@ public class InstanceController {
         if (instance != null){
             TerminateInstanceTask instanceTask = new TerminateInstanceTask();
             instanceTask.execute(this);
-            instance = null;
         }
     }
 
@@ -62,8 +61,8 @@ public class InstanceController {
     public void connectToInstance(String instanceId, MainActivity activity) {
         InstanceConnector connector = new InstanceConnector(this,instanceId);
         if (instance == null){
-            ConnectToInstanceTask instanceTask = new ConnectToInstanceTask(activity);
-            instanceTask.execute(connector);
+            ConnectToInstanceTask instanceTask = new ConnectToInstanceTask(activity,connector);
+            instanceTask.execute();
         }
     }
 
