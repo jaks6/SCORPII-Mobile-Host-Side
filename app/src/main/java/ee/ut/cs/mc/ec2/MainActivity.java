@@ -1,6 +1,7 @@
 package ee.ut.cs.mc.ec2;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,6 +33,7 @@ public class MainActivity extends Activity implements OnAwsUpdate {
     //FILES
     private static final String SHELL_SCRIPT = "setup.sh";
     private static final String BPEL = "bpel.zip";
+    private static final String EC2_INSTANCE_SETTINGS = "Ec2PrefsFile";
 
     TextView consoleTextView;
     InstanceController ec2InstanceController;
@@ -42,6 +44,10 @@ public class MainActivity extends Activity implements OnAwsUpdate {
         setContentView(R.layout.activity_main);
 
         consoleTextView = (TextView) findViewById(R.id.textview_console);
+        ec2InstanceController = createInstanceControllerIfDoesntExist();
+        reconnectToInstanceIfExists();
+
+
     }
 
     private void connectSSH() {
@@ -51,23 +57,19 @@ public class MainActivity extends Activity implements OnAwsUpdate {
 
     public void doSCP(View v) {
         Log.v(TAG, "Started doSCP method");
-        new SCPTask().execute();
+        new SCPTask(this).execute();
 
     }
 
     public void launchInstance() {
         try {
-            ec2InstanceController = new InstanceController(this);
-            //By default, the service endpoint is ec2.us-east-1.amazonaws.com.
-            ec2InstanceController.setEndPoint("ec2.us-east-1.amazonaws.com");
+            ec2InstanceController = createInstanceControllerIfDoesntExist();
             ec2InstanceController.launchInstance(new LaunchConfiguration(
                             "t1.micro",          //instance type
                             "ami-98aa1cf0",      // machine image
                             "jakob.mass",        // key
                             "sg-001c416a"        //security group
                     ),this);
-        } catch (IOException e) {
-            showError(e.getMessage());
         } catch (Exception e) {
             showError(e.getMessage());
         }
@@ -116,16 +118,80 @@ public class MainActivity extends Activity implements OnAwsUpdate {
         if (ec2InstanceController !=null) ec2InstanceController.setInstance(i);
     }
 
-    public class SCPTask extends AsyncTask<String, Void, String> {
 
+    /** Checks if we have already launched an instance and if so,
+     * tries to get that instances description
+     */
+    private void reconnectToInstanceIfExists() {
+        Log.i(TAG, "reconnectToInstanceIfExists method");
+        SharedPreferences settings = getSharedPreferences(EC2_INSTANCE_SETTINGS, 0);
+
+        boolean instanceLaunched = settings.getBoolean("InstanceLaunched",false);
+        String instanceId = settings.getString("InstanceIdentifier", "");
+        if (instanceLaunched){
+            ec2InstanceController = createInstanceControllerIfDoesntExist();
+            ec2InstanceController.connectToInstance(instanceId, this);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        Log.i(TAG, "onPause");
+        super.onPause();
+        SharedPreferences settings = getSharedPreferences(EC2_INSTANCE_SETTINGS, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        boolean instanceLaunched = false;
+        instanceLaunched =
+                (ec2InstanceController != null && ec2InstanceController.getInstance() != null);
+
+        editor.putBoolean("InstanceLaunched", instanceLaunched);
+        if (instanceLaunched) {
+            editor.putString("InstanceIdentifier", ec2InstanceController.getInstance().getInstanceId());
+        }
+        editor.commit();
+
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG, "onResume");
+        reconnectToInstanceIfExists();
+
+    }
+
+
+    private InstanceController createInstanceControllerIfDoesntExist() {
+        if (ec2InstanceController == null){
+            try {
+                InstanceController controller = new InstanceController(this);
+                controller.setEndPoint("ec2.us-east-1.amazonaws.com");
+                return controller;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return ec2InstanceController;
+    }
+
+    public class SCPTask extends AsyncTask<String, Void, String> {
+        public MainActivity activity;
+
+        public SCPTask(MainActivity a)
+        {
+            this.activity = a;
+        }
         @Override
         protected String doInBackground(String... params) {
             if (ec2InstanceController != null){
-                ScpManager scp = new ScpManager();
-                scp.configureSession(SHELL_USER, ec2InstanceController.getInstance().getPublicIpAddress(), PORT, getAssets(),KEY_FILE);
-                scp.sendFile(getAssets(), SHELL_SCRIPT);
-                scp.sendFile(getAssets(), BPEL);
-                scp.sendCommand("sudo bash setup.sh");
+                try {
+                    ScpManager scp = new ScpManager(activity);
+                    scp.configureSession(SHELL_USER, ec2InstanceController.getInstance().getPublicIpAddress(), PORT, getAssets(),KEY_FILE);
+                    scp.sendFileFromRawResources(R.raw.setup);
+                    scp.sendFileFromAssets(getAssets(), BPEL);
+                    scp.sendCommand("sudo bash setup");
+                } catch (IOException e) {
+                    showError(e.getMessage());
+                }
 
             } else {
                 showInUi("ERROR - tried doing SCP with instance null!");

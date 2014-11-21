@@ -1,7 +1,6 @@
 package ee.ut.cs.mc.ec2.aws;
 
 import android.content.Context;
-import android.content.res.Resources;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.PropertiesCredentials;
@@ -9,7 +8,6 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.Instance;
 import com.example.ec2.R;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import ee.ut.cs.mc.ec2.MainActivity;
@@ -47,6 +45,7 @@ public class InstanceController {
         if (instance != null){
             TerminateInstanceTask instanceTask = new TerminateInstanceTask();
             instanceTask.execute(this);
+            instance = null;
         }
     }
 
@@ -55,6 +54,14 @@ public class InstanceController {
         if (instance == null){
             RunInstanceTask instanceTask = new RunInstanceTask(activity);
             instanceTask.execute(launcher);
+        }
+    }
+
+    public void connectToInstance(String instanceId, MainActivity activity) {
+        InstanceConnector connector = new InstanceConnector(this,instanceId);
+        if (instance == null){
+            ConnectToInstanceTask instanceTask = new ConnectToInstanceTask(activity);
+            instanceTask.execute(connector);
         }
     }
 

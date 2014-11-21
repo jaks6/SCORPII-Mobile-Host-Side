@@ -1,5 +1,6 @@
 package ee.ut.cs.mc.ec2.scp;
 
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 
@@ -22,6 +23,7 @@ public class ScpManager {
 
     String keyFileName;
 
+    Context context;
     String username;
     String host;
     int port;
@@ -29,6 +31,10 @@ public class ScpManager {
     Session session;
 
     public ScpManager() {
+        this.jsch = new ExtendedJSch();
+    }
+    public ScpManager(Context context) {
+        this.context = context.getApplicationContext();
         this.jsch = new ExtendedJSch();
     }
 
@@ -201,23 +207,38 @@ public class ScpManager {
             Log.i(TAG, "" + exitStatus);
         }
     }
+    /** Gets the given files InputStream and length,
+     *  calls the initFileTransfer function with these values
+     * @param resourceId
+     */
+    public void sendFileFromRawResources(int resourceId) throws IOException {
+            InputStream inputStream = context.getResources().openRawResource(resourceId);
+            String resourceName = context.getResources().getResourceEntryName(resourceId);
+            //Danger, available() might be unreliable, see http://developer.android.com/reference/java/io/InputStream.html#available%28%29
+            long length = inputStream.available();
 
+            sendInputStreamAsFile(inputStream, resourceName, length);
+
+    }
 
     /** Gets the given files InputStream and length,
      *  calls the initFileTransfer function with these values
      * @param assets
      * @param assetName
      */
-    public void sendFile(AssetManager assets, String assetName) {
-        try {
-            Long length = assets.openFd(assetName).getLength();
+    public void sendFileFromAssets(AssetManager assets, String assetName) throws IOException {
+            long length = assets.openFd(assetName).getLength();
             InputStream inputStream = assets.open(assetName);
 
-            createSession();
-            initFileTransfer(inputStream, assetName, length);
-            killSession();
-        } catch (IOException e) {
-            Log.e(TAG, e.toString());
-        }
+            sendInputStreamAsFile(inputStream, assetName, length);
     }
+
+    public void sendInputStreamAsFile(InputStream inputStream, String fileName, long length) throws IOException {
+
+        createSession();
+        initFileTransfer(inputStream, fileName, length);
+        killSession();
+    }
+
+
 }
