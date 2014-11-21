@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.amazonaws.services.ec2.model.Instance;
@@ -35,6 +36,7 @@ public class MainActivity extends Activity implements OnAwsUpdate {
     private static final String EC2_INSTANCE_SETTINGS = "Ec2PrefsFile";
 
     TextView consoleTextView;
+    ScrollView scrollView;
     InstanceController ec2InstanceController;
 
     @Override
@@ -43,9 +45,8 @@ public class MainActivity extends Activity implements OnAwsUpdate {
         setContentView(R.layout.activity_main);
 
         consoleTextView = (TextView) findViewById(R.id.textview_console);
+        scrollView = (ScrollView) findViewById(R.id.scrollView);
         ec2InstanceController = createInstanceControllerIfDoesntExist();
-        reconnectToInstanceIfExists();
-
 
     }
 
@@ -74,7 +75,12 @@ public class MainActivity extends Activity implements OnAwsUpdate {
     }
     public void showInUi(String msg) {
         consoleTextView.append("\n" +msg);
-//        consoleTextView.setText(msg);
+        scrollView.post(new Runnable() {
+            @Override
+            public void run() {
+                scrollView.fullScroll(View.FOCUS_DOWN);
+            }
+        });
     }
 
     @Override
@@ -182,7 +188,7 @@ public class MainActivity extends Activity implements OnAwsUpdate {
                     scp.configureSession(SHELL_USER, ec2InstanceController.getInstance().getPublicIpAddress(), PORT, getAssets(),KEY_FILE);
                     scp.sendFileFromRawResources(R.raw.setup);
                     scp.sendFileFromAssets(getAssets(), BPEL);
-                    scp.sendCommand("sudo bash setup");
+                    scp.sendCommand("sudo bash setup 'http://mirror.sdunix.com/apache/ode/apache-ode-war-1.3.6.zip'");
                 } catch (IOException e) {
                     showError(e.getMessage());
                 }
