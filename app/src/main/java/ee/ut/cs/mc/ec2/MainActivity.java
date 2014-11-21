@@ -19,7 +19,6 @@ import ee.ut.cs.mc.ec2.aws.InstanceController;
 import ee.ut.cs.mc.ec2.aws.LaunchConfiguration;
 import ee.ut.cs.mc.ec2.aws.OnAwsUpdate;
 import ee.ut.cs.mc.ec2.scp.ScpManager;
-import ee.ut.cs.mc.ec2.scp.SshThread;
 
 public class MainActivity extends Activity implements OnAwsUpdate {
 
@@ -50,15 +49,10 @@ public class MainActivity extends Activity implements OnAwsUpdate {
 
     }
 
-    private void connectSSH() {
-        SshThread sshThread = new SshThread(this);
-        sshThread.start();
-    }
-
+    /** Main MHCM Use case is initiated from this method */
     public void doSCP(View v) {
         Log.v(TAG, "Started doSCP method");
         new SCPTask(this).execute();
-
     }
 
     public void launchInstance() {
@@ -79,7 +73,8 @@ public class MainActivity extends Activity implements OnAwsUpdate {
         consoleTextView.setText(msg);
     }
     public void showInUi(String msg) {
-        consoleTextView.setText(msg);
+        consoleTextView.append("\n" +msg);
+//        consoleTextView.setText(msg);
     }
 
     @Override
@@ -156,7 +151,6 @@ public class MainActivity extends Activity implements OnAwsUpdate {
         super.onResume();
         Log.i(TAG, "onResume");
         reconnectToInstanceIfExists();
-
     }
 
 
@@ -192,7 +186,6 @@ public class MainActivity extends Activity implements OnAwsUpdate {
                 } catch (IOException e) {
                     showError(e.getMessage());
                 }
-
             } else {
                 showInUi("ERROR - tried doing SCP with instance null!");
             }

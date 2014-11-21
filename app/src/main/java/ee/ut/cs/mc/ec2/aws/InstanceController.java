@@ -54,6 +54,8 @@ public class InstanceController {
         if (instance == null){
             RunInstanceTask instanceTask = new RunInstanceTask(activity);
             instanceTask.execute(launcher);
+        } else {
+            activity.showInUi("Did not launch new instance because current instance was not null.");
         }
     }
 

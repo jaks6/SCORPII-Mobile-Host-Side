@@ -25,11 +25,17 @@ public class ConnectToInstanceTask extends AsyncTask<InstanceConnector, String,I
             e.printStackTrace();
         }
 
-        if (instance == null) {
+        if (instance == null || instance.getState().getName().equals("terminated")) {
             activity.showError("Could not connect to instance.");
         }
 		return instance;
 	}
+    @Override
+    protected void onProgressUpdate(String... progress) {
+        if(progress[0]==null) progress[0] = "null";
+        activity.showInUi(String.format("Waiting for instance to get ready;" +
+                "\n instance state = %s", progress[0]));
+    }
 
     @Override
 	protected void onPostExecute(Instance result) {
