@@ -31,7 +31,6 @@ public class MainActivity extends Activity implements OnAwsUpdate {
     private static final int PORT = 22;
 
     //FILES
-    private static final String SHELL_SCRIPT = "setup.sh";
     private static final String BPEL = "bpel.zip";
     private static final String EC2_INSTANCE_SETTINGS = "Ec2PrefsFile";
 
@@ -188,7 +187,7 @@ public class MainActivity extends Activity implements OnAwsUpdate {
                     scp.configureSession(SHELL_USER, ec2InstanceController.getInstance().getPublicIpAddress(), PORT, getAssets(),KEY_FILE);
                     scp.sendFileFromRawResources(R.raw.setup);
                     scp.sendFileFromAssets(getAssets(), BPEL);
-                    scp.sendCommand("sudo bash setup 'http://mirror.sdunix.com/apache/ode/apache-ode-war-1.3.6.zip'");
+                    scp.sendCommand("sudo bash setup 'http://mirror.symnds.com/software/Apache/ode/apache-ode-war-1.3.6.zip'");
                 } catch (IOException e) {
                     showError(e.getMessage());
                 }

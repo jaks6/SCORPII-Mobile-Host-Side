@@ -4,6 +4,9 @@
 # echo "----------------------"
 # ## Command line arguments
 APACHEODE_URL=$1
+## temporary folder to store process files before deploying them to engine
+##, this is needed to set right permissions for deployment to be succesful
+TEMPORARY_FOLDER=/var/lib/tomcat7/webapps/ode/temp
 apt-get update
 apt-get install tomcat7 -y
 apt-get install wget
@@ -20,7 +23,10 @@ rm ode.zip
 #####################################################
 ##  BPEL
 #####################################################
-unzip -j "bpel.zip" -d "var/lib/tomcat7/webapps/ode/temp"
+mkdir -p ${TEMPORARY_FOLDER}
+mkdir -p /var/lib/tomcat7/webapps/ode/WEB-INF/processes/HelloWorld
+unzip -j "bpel.zip" -d ${TEMPORARY_FOLDER}
 ##Set owner of the process directory to tomcat7
-chown -R tomcat7 var/lib/tomcat7/webapps/ode/temp
-mv var/lib/tomcat7/webapps/ode/temp/* /var/lib/tomcat7/webapps/ode/WEB-INF/processes
+chown -R tomcat7 /var/lib/tomcat7/webapps/ode/temp
+chown -R tomcat7 /var/lib/tomcat7/webapps/ode/WEB-INF/processes/HelloWorld
+mv /var/lib/tomcat7/webapps/ode/temp/* /var/lib/tomcat7/webapps/ode/WEB-INF/processes/HelloWorld
