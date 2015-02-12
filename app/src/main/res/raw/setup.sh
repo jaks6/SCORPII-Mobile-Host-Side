@@ -1,6 +1,7 @@
 #!/bin/bash
 # MHCM script
-# echo "Apache ODE .war  http is: $1" # [13.11.2014]apache website mirror link is http://mirror.sdunix.com/apache/ode/apache-ode-war-1.3.6.zip
+# echo "Apache ODE .war  http is: $1" # [13.11.2014]apache website mirror link is
+# http://mirror.sdunix.com/apache/ode/apache-ode-war-1.3.6.zip
 # echo "----------------------"
 # ## Command line arguments
 APACHEODE_URL=$1
