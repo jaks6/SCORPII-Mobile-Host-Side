@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.amazonaws.services.ec2.model.Instance;
 
 import ee.ut.cs.mc.ec2.MainActivity;
+import ee.ut.cs.mc.ec2.Utils;
 
 public class ConnectToInstanceTask extends AsyncTask<Void, String,Instance> {
     private final InstanceConnector connector;
@@ -32,7 +33,7 @@ public class ConnectToInstanceTask extends AsyncTask<Void, String,Instance> {
     @Override
     protected void onProgressUpdate(String... progress) {
         if(progress[0]==null) progress[0] = "null";
-        activity.showInUi(String.format("Waiting for instance to get ready;" +
+        activity.appendToUiConsole(String.format("Waiting for instance to get ready;" +
                 "\n instance state = %s", progress[0]));
     }
 
@@ -43,19 +44,19 @@ public class ConnectToInstanceTask extends AsyncTask<Void, String,Instance> {
 		} else {
 //            Instance i = result.getReservation().getInstances().get(0);
             String publicIP = result.getPublicIpAddress();
-			activity.showInUi(String.format(
-					"Restored connection to instance, " +
-                    "\n ip = '%s'"+
-					"\n id = '%s'." +
-					"\n AMI ID = '%s'", publicIP, result.getInstanceId(), result.getImageId()));
+			activity.appendToUiConsole(String.format(
+                    "Restored connection to instance, " +
+                            "\n ip = '%s'" +
+                            "\n id = '%s'." +
+                            "\n AMI ID = '%s'", publicIP, result.getInstanceId(), result.getImageId()));
 
-            activity.onInstanceUpdate(result);
+            activity.onInstanceUpdate(result, Utils.INSTANCE_RUNNING);
 		}
 	}
 
 	@Override
 	protected void onPreExecute() {
-        activity.showInUi("Connecting to existing instance with id: " + connector.getInstanceId());
+        activity.appendToUiConsole("Connecting to existing instance with id: " + connector.getInstanceId());
 	}
 
 	

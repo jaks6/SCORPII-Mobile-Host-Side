@@ -9,6 +9,7 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 
 import ee.ut.cs.mc.ec2.MainActivity;
+import ee.ut.cs.mc.ec2.Utils;
 
 public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance> {
 	MainActivity activity;
@@ -56,7 +57,7 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
     @Override
     protected void onProgressUpdate(String... progress) {
         if(progress[0]==null) progress[0] = "null";
-        activity.showInUi(String.format("Waiting for instance to get ready;" +
+        activity.appendToUiConsole(String.format("Waiting for instance to get ready;" +
                 "\n instance state = %s", progress[0]));
     }
 
@@ -64,23 +65,23 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
     @Override
 	protected void onPostExecute(Instance result) {
 		if (result == null){
-			activity.showInUi("Instance launch failed.");
+			activity.appendToUiConsole("Instance launch failed.");
 		} else {
 //            Instance i = result.getReservation().getInstances().get(0);
             String publicIP = result.getPublicIpAddress();
-			activity.showInUi(String.format(
-					"Launched instance, " +
-                    "\n ip = '%s'"+
-					"\n id = '%s'." +
-					"\n AMI ID = '%s'", publicIP, result.getInstanceId(), result.getImageId()));
+			activity.appendToUiConsole(String.format(
+                    "Launched instance, " +
+                            "\n ip = '%s'" +
+                            "\n id = '%s'." +
+                            "\n AMI ID = '%s'", publicIP, result.getInstanceId(), result.getImageId()));
 
-            activity.onInstanceUpdate(result);
+            activity.onInstanceUpdate(result, Utils.INSTANCE_RUNNING);
 		}
 	}
 
 	@Override
 	protected void onPreExecute() {
-		activity.showInUi("Starting 'instance launch task'");
+		activity.appendToUiConsole("Starting 'instance launch task'");
 	}
 
 	

@@ -15,6 +15,7 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.example.ec2.R;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import ee.ut.cs.mc.ec2.aws.InstanceController;
 import ee.ut.cs.mc.ec2.aws.LaunchConfiguration;
@@ -31,8 +32,13 @@ public class MainActivity extends Activity implements OnAwsUpdate {
     private static final int PORT = 22;
 
     //FILES
-    private static final String BPEL = "bpel.zip";
+    private static final String BPEL_FILENAME = "bpel.zip";
+    private static final String BPEL_FOLDERNAME = "HelloWorld";
     private static final String EC2_INSTANCE_SETTINGS = "Ec2PrefsFile";
+
+    // MIRRORS
+    private static final String APACHEODE_MIRROR_URL = "http://mirror.symnds.com/software/Apache/ode/apache-ode-war-1.3.6.zip";
+
 
     TextView consoleTextView;
     ScrollView scrollView;
@@ -72,7 +78,7 @@ public class MainActivity extends Activity implements OnAwsUpdate {
     public void showError(String msg) {
         consoleTextView.setText(msg);
     }
-    public void showInUi(String msg) {
+    public void appendToUiConsole(String msg) {
         consoleTextView.append("\n" +msg);
         scrollView.post(new Runnable() {
             @Override
@@ -110,18 +116,17 @@ public class MainActivity extends Activity implements OnAwsUpdate {
 
     private void terminateInstance() {
         ec2InstanceController.terminateInstance();
-        showInUi("Shutting down last instance.");
+        appendToUiConsole("Shutting down last instance.");
     }
 
-    @Override
-    public void onInstanceUpdate(Instance i) {
-        if (ec2InstanceController !=null) ec2InstanceController.setInstance(i);
+    public void onInstanceUpdate(Instance i, int stateCode) {
+        if (ec2InstanceController != null) ec2InstanceController.setInstance(i);
+        if (stateCode==Utils.INSTANCE_RUNNING){
+//            new SCPTask(this).execute();
+        }
     }
-
-
     /** Checks if we have already launched an instance and if so,
-     * tries to get that instances description
-     */
+     * tries to get that instances description */
     private void reconnectToInstanceIfExists() {
         Log.i(TAG, "reconnectToInstanceIfExists method");
         SharedPreferences settings = getSharedPreferences(EC2_INSTANCE_SETTINGS, 0);
@@ -182,17 +187,29 @@ public class MainActivity extends Activity implements OnAwsUpdate {
         @Override
         protected String doInBackground(String... params) {
             if (ec2InstanceController != null){
+
                 try {
                     ScpManager scp = new ScpManager(activity);
-                    scp.configureSession(SHELL_USER, ec2InstanceController.getInstance().getPublicIpAddress(), PORT, getAssets(),KEY_FILE);
+                    scp.configureSession(SHELL_USER, ec2InstanceController.getInstance()
+                            .getPublicIpAddress(), PORT, getAssets(),KEY_FILE);
+
+                    Log.d(TAG, "before sending setup script");
                     scp.sendFileFromRawResources(R.raw.setup);
-                    scp.sendFileFromAssets(getAssets(), BPEL);
-                    scp.sendCommand("sudo bash setup 'http://mirror.symnds.com/software/Apache/ode/apache-ode-war-1.3.6.zip'");
+                    Log.d(TAG, "before sending BPEL_FILENAME");
+                    scp.sendFileFromAssets(getAssets(), BPEL_FILENAME);
+                    Log.d(TAG, "before executing setup script");
+
+                    String command = String.format(Locale.getDefault(),
+                                    "sudo bash setup '%s' '%s' '%s'",
+                                    APACHEODE_MIRROR_URL,
+                                    BPEL_FILENAME,
+                                    BPEL_FOLDERNAME);
+                    scp.sendCommand(command);
                 } catch (IOException e) {
                     showError(e.getMessage());
                 }
             } else {
-                showInUi("ERROR - tried doing SCP with instance null!");
+                appendToUiConsole("ERROR - tried doing SCP with instance null!");
             }
             return "";
         }

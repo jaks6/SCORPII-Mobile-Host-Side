@@ -61,7 +61,7 @@ public class SshClient {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    activity.showInUi(response);
+                    activity.appendToUiConsole(response);
                 }
             });
 
@@ -71,7 +71,7 @@ public class SshClient {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    activity.showInUi("exit-status: " + exitStatus);
+                    activity.appendToUiConsole("exit-status: " + exitStatus);
                 }
             });
 

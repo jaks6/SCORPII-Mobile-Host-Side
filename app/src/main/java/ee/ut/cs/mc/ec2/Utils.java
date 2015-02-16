@@ -34,6 +34,8 @@ import java.io.InputStream;
 
 public class Utils {
 
+    public static final int INSTANCE_RUNNING = 0;
+
     public static byte[] getBytes(InputStream is) throws IOException {
 
         int len;
