@@ -1,6 +1,7 @@
 package ee.ut.cs.mc.ec2.aws;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
@@ -12,7 +13,8 @@ import ee.ut.cs.mc.ec2.MainActivity;
 import ee.ut.cs.mc.ec2.Utils;
 
 public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance> {
-	MainActivity activity;
+    private static final String TAG = RunInstanceTask.class.getName();
+    MainActivity activity;
 
 	public RunInstanceTask(MainActivity activity) {
 		this.activity = activity;
@@ -45,7 +47,7 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
                     instanceIP = instance.getPublicIpAddress();
                 }
                 try {
-                    Thread.sleep(1500);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -64,6 +66,7 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
 
     @Override
 	protected void onPostExecute(Instance result) {
+        Log.i(TAG, "*** Instance is running");
 		if (result == null){
 			activity.appendToUiConsole("Instance launch failed.");
 		} else {

@@ -15,7 +15,7 @@
         android:layout_below="@+id/scrollView"
         android:layout_marginTop="39dp"
         android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignEnd="@+id/btn_doSCP" />
 
     <Button
         android:layout_width="wrap_content"
@@ -51,5 +51,14 @@
             android:layout_height="wrap_content"
             android:text="@string/console_default" />
     </ScrollView>
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Use snapshot"
+        android:id="@+id/chckBox_use_snapshot"
+        android:checked="true"
+        android:layout_alignTop="@+id/btn_start_instance"
+        android:layout_toEndOf="@+id/btn_start_instance" />
 
 </RelativeLayout>

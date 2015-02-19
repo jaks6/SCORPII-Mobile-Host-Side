@@ -15,7 +15,7 @@ public class AndroidScpLogger implements Logger {
 
     @Override
     public boolean isEnabled(int level) {
-        return true;
+        return false;
     }
 
     @Override

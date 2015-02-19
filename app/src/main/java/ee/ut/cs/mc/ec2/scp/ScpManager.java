@@ -23,7 +23,6 @@ public class ScpManager {
 
     String keyFileName;
 
-    Context context;
     String username;
     String host;
     int port;
@@ -31,11 +30,6 @@ public class ScpManager {
     Session session;
 
     public ScpManager() {
-        this.jsch = new ExtendedJSch();
-    }
-
-    public ScpManager(Context context) {
-        this.context = context.getApplicationContext();
         this.jsch = new ExtendedJSch();
         jsch.setLogger(new AndroidScpLogger());
     }
@@ -94,7 +88,7 @@ public class ScpManager {
     }
 
     public void createSession() {
-        Log.d(TAG, "createSession() ");
+        Log.i(TAG, "createSession() ");
         int retriesLeft = 15;
         try {
             session = jsch.getSession(username, host, port);
@@ -108,7 +102,7 @@ public class ScpManager {
 //                Log.e(TAG, e.toString());
             }
         }
-        Log.d(TAG, "session connected");
+        if (session.isConnected()) Log.i(TAG, "***session connected");
     }
 
     public void killSession() {
@@ -177,8 +171,9 @@ public class ScpManager {
         }
     }
 
+    /** Executes the given command on the remote machine and logs the response */
     public void sendCommand(String command) {
-        Log.i(TAG, "starting session connect");
+        Log.v(TAG, "sendCommand()");
         try {
             createSession();
 
@@ -186,10 +181,9 @@ public class ScpManager {
             channel.connect();
 
             readAndLogResponse((ChannelExec) channel);
-
-//            channel.disconnect();
-//            killSession();
-
+            Log.v(TAG, "Disconnecting & killing session in sendCommand()");
+            channel.disconnect();
+            killSession();
 
         } catch (JSchException e) {
             e.printStackTrace();
@@ -225,14 +219,13 @@ public class ScpManager {
      *
      * @param resourceId
      */
-    public void sendFileFromRawResources(int resourceId) throws IOException {
+    public void sendFileFromRawResources(Context context,int resourceId) throws IOException {
         InputStream inputStream = context.getResources().openRawResource(resourceId);
         String resourceName = context.getResources().getResourceEntryName(resourceId);
         //Danger, available() might be unreliable, see http://developer.android.com/reference/java/io/InputStream.html#available%28%29
         long length = inputStream.available();
 
         sendInputStreamAsFile(inputStream, resourceName, length);
-
     }
 
     /**

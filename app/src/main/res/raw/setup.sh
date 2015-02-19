@@ -26,10 +26,8 @@ rm ode.zip &
 #####################################################
 ##  BPEL
 #####################################################
-mkdir -p ${TEMPORARY_FOLDER}
 mkdir -p /var/lib/tomcat7/webapps/ode/WEB-INF/processes/${BPEL_FOLDERNAME}
-unzip -j ${BPEL_ZIP_FILENAME} -d ${TEMPORARY_FOLDER}
+unzip -j ${BPEL_ZIP_FILENAME} -d /var/lib/tomcat7/webapps/ode/WEB-INF/processes/${BPEL_FOLDERNAME}
 ##Set owner of the process directory to tomcat7
-chown -R tomcat7 /var/lib/tomcat7/webapps/ode/temp
 chown -R tomcat7 /var/lib/tomcat7/webapps/ode/WEB-INF/processes/${BPEL_FOLDERNAME}
-mv /var/lib/tomcat7/webapps/ode/temp/* /var/lib/tomcat7/webapps/ode/WEB-INF/processes/${BPEL_FOLDERNAME}
+rm -f /var/lib/tomcat7/webapps/ode/WEB-INF/processes/*.deployed
