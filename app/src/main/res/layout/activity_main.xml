@@ -6,37 +6,6 @@
     tools:context="ee.ut.cs.mc.ec2.MainActivity"
     android:id="@+id/relativeLayout">
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_start_instance"
-        android:id="@+id/btn_start_instance"
-        android:onClick="startInstance"
-        android:layout_below="@+id/scrollView"
-        android:layout_marginTop="39dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignEnd="@+id/btn_doSCP" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_terminate_instance"
-        android:id="@+id/btn_terminate_instance"
-        android:onClick="terminateInstance"
-        android:layout_below="@+id/btn_start_instance"
-        android:layout_centerHorizontal="true"
-        android:background="#ffdd6573"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"/>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_do_scop"
-        android:id="@+id/btn_doSCP"
-        android:onClick="doSCP"
-        android:layout_below="@+id/btn_terminate_instance"
-        android:layout_centerHorizontal="true" />
-
     <ScrollView
         android:layout_width="wrap_content"
         android:layout_height="@dimen/console_height"
@@ -52,13 +21,25 @@
             android:text="@string/console_default" />
     </ScrollView>
 
-    <CheckBox
-        android:layout_width="wrap_content"
+    <Switch
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/activity_horizontal_margin"
+    android:text="Use Cloud"
+    android:id="@+id/switch_use_cloud_utility"
+    android:layout_centerVertical="true"
+    android:layout_centerHorizontal="true"
+    android:checked="true" />
+
+    <Switch
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Use snapshot"
-        android:id="@+id/chckBox_use_snapshot"
-        android:checked="true"
-        android:layout_alignTop="@+id/btn_start_instance"
-        android:layout_toEndOf="@+id/btn_start_instance" />
+        android:layout_margin="@dimen/activity_horizontal_margin"
+        android:layout_below="@id/switch_use_cloud_utility"
+        android:text="Use Snapshot Image For cloud"
+        android:id="@+id/switch_use_snapshot"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:checked="true" />
 
 </RelativeLayout>
