@@ -1,4 +1,4 @@
-package ee.ut.cs.mc.ec2.aws;
+package ee.ut.cs.mc.scorpii.aws;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -9,8 +9,7 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 
-import ee.ut.cs.mc.ec2.MainActivity;
-import ee.ut.cs.mc.ec2.Utils;
+import ee.ut.cs.mc.scorpii.MainActivity;
 
 public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance> {
     private static final String TAG = RunInstanceTask.class.getName();
@@ -78,7 +77,7 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
                             "\n id = '%s'." +
                             "\n AMI ID = '%s'", publicIP, result.getInstanceId(), result.getImageId()));
 
-            activity.onInstanceUpdate(result, Utils.INSTANCE_RUNNING);
+//            activity.onInstanceUpdate(result, Utils.INSTANCE_RUNNING);
 		}
 	}
 

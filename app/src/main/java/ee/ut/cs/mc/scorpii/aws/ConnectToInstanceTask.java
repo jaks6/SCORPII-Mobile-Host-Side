@@ -1,11 +1,10 @@
-package ee.ut.cs.mc.ec2.aws;
+package ee.ut.cs.mc.scorpii.aws;
 
 import android.os.AsyncTask;
 
 import com.amazonaws.services.ec2.model.Instance;
 
-import ee.ut.cs.mc.ec2.MainActivity;
-import ee.ut.cs.mc.ec2.Utils;
+import ee.ut.cs.mc.scorpii.MainActivity;
 
 public class ConnectToInstanceTask extends AsyncTask<Void, String,Instance> {
     private final InstanceConnector connector;
@@ -50,7 +49,7 @@ public class ConnectToInstanceTask extends AsyncTask<Void, String,Instance> {
                             "\n id = '%s'." +
                             "\n AMI ID = '%s'", publicIP, result.getInstanceId(), result.getImageId()));
 
-            activity.onInstanceUpdate(result, Utils.INSTANCE_RUNNING);
+//            activity.onInstanceUpdate(result, Utils.INSTANCE_RUNNING);
 		}
 	}
 

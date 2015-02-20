@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
-    tools:context="ee.ut.cs.mc.ec2.MainActivity"
+    tools:context="ee.ut.cs.mc.scorpii.MainActivity"
     android:id="@+id/relativeLayout">
 
     <ScrollView

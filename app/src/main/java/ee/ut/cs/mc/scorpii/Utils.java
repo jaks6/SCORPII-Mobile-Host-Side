@@ -1,4 +1,4 @@
-package ee.ut.cs.mc.ec2;
+package ee.ut.cs.mc.scorpii;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,7 +34,30 @@ import java.io.InputStream;
 
 public class Utils {
 
+    //EC2 AMIs
+    public static final String AMI_ODE_SNAPSHOT = "ami-905c0bf8";
+    public static final String AMI_UBUNTU = "ami-98aa1cf0";
+
+    //For SSH-ing into EC2 instance
+    public static final String SHELL_USER = "ubuntu";
+    public static final String KEY_FILE = "jakobmass.pem";
+    public static final int PORT = 22;
+
+    //FILES
+    public static final String BPEL_FILENAME = "bpel.zip";
+    public static final String BPEL_FOLDERNAME = "HelloWorld";
+    public static final String EC2_INSTANCE_SETTINGS = "Ec2PrefsFile";
+
+    // MIRRORS
+    public static final String APACHEODE_MIRROR_URL = "http://mirror.symnds.com/software/Apache/ode/apache-ode-war-1.3.6.zip";
+
+    //INTENT KEYS
+    public static final String INTENT_KEY_NO_OF_DEVICES = "NO_OF_DEVICES";
+    public static final String INTENT_KEY_USE_CLOUD = "USE_CLOUD";
+
     public static final int INSTANCE_RUNNING = 0;
+    public static final int NO_OF_DEVICES = 100;
+
 
     public static byte[] getBytes(InputStream is) throws IOException {
 

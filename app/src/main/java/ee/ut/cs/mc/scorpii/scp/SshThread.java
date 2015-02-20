@@ -1,6 +1,6 @@
-package ee.ut.cs.mc.ec2.scp;
+package ee.ut.cs.mc.scorpii.scp;
 
-import ee.ut.cs.mc.ec2.MainActivity;
+import ee.ut.cs.mc.scorpii.MainActivity;
 
 /**
  * Created by Jakob on 2.10.2014.

@@ -1,4 +1,4 @@
-package ee.ut.cs.mc.ec2.aws;
+package ee.ut.cs.mc.scorpii.aws;
 
 import android.content.Context;
 
@@ -10,7 +10,7 @@ import com.example.ec2.R;
 
 import java.io.InputStream;
 
-import ee.ut.cs.mc.ec2.MainActivity;
+import ee.ut.cs.mc.scorpii.MainActivity;
 
 public class InstanceController {
 

@@ -1,4 +1,4 @@
-package ee.ut.cs.mc.ec2.scp;
+package ee.ut.cs.mc.scorpii.scp;
 
 import android.util.Log;
 

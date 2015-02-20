@@ -1,4 +1,4 @@
-package ee.ut.cs.mc.ec2.scp;
+package ee.ut.cs.mc.scorpii.scp;
 
 import android.util.Log;
 
@@ -8,7 +8,7 @@ import com.jcraft.jsch.Session;
 import java.io.IOException;
 import java.io.InputStream;
 
-import ee.ut.cs.mc.ec2.MainActivity;
+import ee.ut.cs.mc.scorpii.MainActivity;
 
 public class SshClient {
 

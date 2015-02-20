@@ -1,4 +1,4 @@
-package ee.ut.cs.mc.ec2.aws;
+package ee.ut.cs.mc.scorpii.aws;
 
 public class LaunchConfiguration {
 	

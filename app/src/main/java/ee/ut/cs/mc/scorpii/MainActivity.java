@@ -1,44 +1,33 @@
-package ee.ut.cs.mc.ec2;
+package ee.ut.cs.mc.scorpii;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.example.ec2.R;
 
-import ee.ut.cs.mc.ec2.aws.InstanceController;
+import ee.ut.cs.mc.scorpii.aws.InstanceController;
 
 public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    //EC2 AMIs
-    private static final String AMI_ODE_SNAPSHOT = "ami-905c0bf8";
-    private static final String AMI_UBUNTU = "ami-98aa1cf0";
-
-    //For SSH-ing into EC2 instance
-    private static final String SHELL_USER = "ubuntu";
-    private static final String KEY_FILE = "jakobmass.pem";
-    private static final int PORT = 22;
-
-    //FILES
-    private static final String BPEL_FILENAME = "bpel.zip";
-    private static final String BPEL_FOLDERNAME = "HelloWorld";
-    private static final String EC2_INSTANCE_SETTINGS = "Ec2PrefsFile";
-
-    // MIRRORS
-    private static final String APACHEODE_MIRROR_URL = "http://mirror.symnds.com/software/Apache/ode/apache-ode-war-1.3.6.zip";
 
 
-    TextView consoleTextView;
-    ScrollView scrollView;
-    InstanceController ec2InstanceController;
-    CheckBox useSnapshotAMIcheckBox;
+
+
+
+    private TextView consoleTextView;
+    private ScrollView scrollView;
+    private InstanceController ec2InstanceController;
+    private Switch useSnapshotAMIswitch;
+    private Switch useCloudSwitch;
 
 
     @Override
@@ -46,11 +35,22 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        useSnapshotAMIcheckBox = (CheckBox) findViewById(R.id.chckBox_use_snapshot);
+        useSnapshotAMIswitch = (Switch) findViewById(R.id.switch_use_snapshot);
+        useCloudSwitch = (Switch) findViewById(R.id.switch_use_cloud_utility);
         consoleTextView = (TextView) findViewById(R.id.textview_console);
         scrollView = (ScrollView) findViewById(R.id.scrollView);
+
+
+        startScorpiiService();
     }
 
+    private void startScorpiiService() {
+        boolean useCloud = useCloudSwitch.isEnabled();
+
+        Intent i= new Intent(this, ScorpiiService.class);
+        i.putExtra(Utils.INTENT_KEY_NO_OF_DEVICES, Utils.NO_OF_DEVICES);
+        i.putExtra(Utils.INTENT_KEY_USE_CLOUD, useCloud);
+    }
 
 
     public void showError(String msg) {
