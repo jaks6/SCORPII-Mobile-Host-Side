@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 
-import java.net.URL;
+import java.io.IOException;
 
 /**
  * Created by jaks on 20/02/15.
@@ -20,14 +20,18 @@ import java.net.URL;
  * can be obtained.
  */
 public class ThingResponse {
-    private URL url;
+    private String url;
     private ScorpiiService s;
     private ServiceDescriptor serviceDescriptor;
 
     public ThingResponse() {
     }
 
-    public URL getUrl() {
+    public ThingResponse(ServiceDescriptor serviceDescriptor) {
+
+    }
+
+    public String getUrl() {
         return url;
     }
 
@@ -41,16 +45,25 @@ public class ThingResponse {
         /** If no actual service descriptor is available, try to get it
          * from the URL (if provided) */
         else if (url != null) {
-            return getServiceDescriptorViaUrl(url);
-        } else return null;
+            try {
+                return getServiceDescriptorViaUrl(url);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
-    private ServiceDescriptor getServiceDescriptorViaUrl(URL url) throws ContextException {
+    private ServiceDescriptor getServiceDescriptorViaUrl(String url) throws ContextException, IOException {
         WebServiceMediator webMediator = getWebServiceMediator();
-        if (webMediator!= null) return webMediator.getFromUrl(url);
+        if (webMediator!= null){
+            String urlResponse =  webMediator.getFromURL(url);
+            return new ServiceDescriptor(urlResponse);
+        }
         else return null;
     }
 
+    /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder binder) {
             ScorpiiService.ScorpiiServiceBinder b = (ScorpiiService.ScorpiiServiceBinder) binder;
@@ -71,7 +84,7 @@ public class ThingResponse {
         }
     }
 
-    public ThingResponse setURL(URL url){
+    public ThingResponse setURL(String url){
         this.url = url;
         return this;
     }

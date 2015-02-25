@@ -4,16 +4,17 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 public class ScorpiiService extends Service {
 
+    private static final String TAG = ScorpiiService.class.getName();
     private int devicesToSimulate;
     private boolean useCloud;
 
     CloudServiceMediator cloudService;
     WebServiceMediator webService;
     private final ScorpiiServiceBinder binder = new ScorpiiServiceBinder(this);
-
 
     public ScorpiiService() {
         this.cloudService = new CloudServiceMediator();
@@ -23,17 +24,31 @@ public class ScorpiiService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        Log.i(TAG, "onStart");
 
-        devicesToSimulate = intent.getIntExtra(Utils.INTENT_KEY_NO_OF_DEVICES, 0);
-        useCloud = intent.getBooleanExtra(Utils.INTENT_KEY_USE_CLOUD,false);
+        int action = intent.getIntExtra(Utils.INTENT_KEY_ACTION, Utils.INTENT_ACTION_DEFAULT);
+
+        if (action == Utils.INTENT_ACTION_DEFAULT){
+
+        } else if (action == Utils.INTENT_ACTION_START_FLOW){
+            devicesToSimulate = intent.getIntExtra(Utils.INTENT_KEY_NO_OF_DEVICES, 0);
+            useCloud = intent.getBooleanExtra(Utils.INTENT_KEY_USE_CLOUD,false);
+
+            doFlow();
+        }
 
         return Service.START_STICKY;
     }
 
     public void doFlow(){
-
-        ThingResponse[] responses = communicateWithThings(devicesToSimulate);
-        ServiceDescriptor[] descriptors = getServiceDescriptorsFromResponses(responses);
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                ThingResponse[] responses = communicateWithThings(devicesToSimulate);
+                ServiceDescriptor[] descriptors = getServiceDescriptorsFromResponses(responses);
+            }
+        };
+        t.start();
 
     }
 
@@ -60,12 +75,14 @@ public class ScorpiiService extends Service {
     private ThingResponse communicateWithThing() {
         // !TODO
         //1. Connect to server
+        webService.simulateCommunicationWithThing();
         //2. Get response
         return new ThingResponse();
     }
 
     @Override
     public IBinder onBind(Intent intent) {
+        Log.i(TAG, "onBind");
         return binder;
     }
 

@@ -19,10 +19,6 @@ public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-
-
-
-
     private TextView consoleTextView;
     private ScrollView scrollView;
     private InstanceController ec2InstanceController;
@@ -42,14 +38,24 @@ public class MainActivity extends Activity {
 
 
         startScorpiiService();
+        startScorpiiFLow();
+    }
+
+    private void startScorpiiFLow() {
+        Intent i= new Intent(this, ScorpiiService.class);
+        i.putExtra(Utils.INTENT_KEY_ACTION, Utils.INTENT_ACTION_START_FLOW);
+        i.putExtra(Utils.INTENT_KEY_NO_OF_DEVICES, Utils.NO_OF_DEVICES);
+        boolean useCloud = useCloudSwitch.isEnabled();
+        i.putExtra(Utils.INTENT_KEY_USE_CLOUD, useCloud);
+        startService(i);
     }
 
     private void startScorpiiService() {
-        boolean useCloud = useCloudSwitch.isEnabled();
+
 
         Intent i= new Intent(this, ScorpiiService.class);
-        i.putExtra(Utils.INTENT_KEY_NO_OF_DEVICES, Utils.NO_OF_DEVICES);
-        i.putExtra(Utils.INTENT_KEY_USE_CLOUD, useCloud);
+
+        startService(i);
     }
 
 
