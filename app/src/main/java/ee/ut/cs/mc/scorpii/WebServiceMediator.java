@@ -2,6 +2,7 @@ package ee.ut.cs.mc.scorpii;
 
 import android.util.Log;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
@@ -18,23 +19,21 @@ import java.io.IOException;
  */
 public class WebServiceMediator {
 
-    static final String IOT_THING_SERVER_URL = "https://dl.dropboxusercontent.com/u/16030070/temp/hello.xml";
+    static final String IOT_THING_SERVER_URL = "http://10.0.2.2:8080/scorpii_test1/thing";
     static final String TAG = WebServiceMediator.class.getName();
 
 
-    public String getFromURL(String url){
+    public HttpResponse getFromURL(String url) {
         HttpClient httpclient = new DefaultHttpClient();
-        HttpResponse response;
+        HttpResponse response = null;
+
         String responseString = null;
         try {
             response = httpclient.execute(new HttpGet(url));
             StatusLine statusLine = response.getStatusLine();
             if(statusLine.getStatusCode() == HttpStatus.SC_OK){
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                response.getEntity().writeTo(out);
-                responseString = out.toString();
-                out.close();
-            } else{
+                return response;
+            } else {
                 //Closes the connection.
                 response.getEntity().getContent().close();
                 throw new IOException(statusLine.getReasonPhrase());
@@ -44,7 +43,58 @@ public class WebServiceMediator {
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
         }
+
+        return response;
+    }
+
+    public String getStringFromUrl(String url) {
+        String result = "";
+        HttpResponse resp = getFromURL(url);
+        try {
+            return readResponseToString(resp);
+        } catch (IOException e) {
+            result += e.getMessage();
+        }
+        return result;
+    }
+
+    /**
+     * Checks HTTP response mime type and creates a ThingResponse accordingly. (Either
+     * giving a value to the url or descriptor field.
+     *
+     * @param response - HttpResponse
+     * @return ThingResponse
+     * @throws IOException
+     */
+    private ThingResponse getThingResponseFromHttpResponse(HttpResponse response) throws IOException {
+        ThingResponse thingResponse = null;
+        String responseString = readResponseToString(response);
+
+        boolean isXml = isXmlContentType(response);
+        thingResponse = new ThingResponse();
+        if (isXml) {
+            thingResponse.setServiceDescriptor(new ServiceDescriptor(responseString));
+        } else {
+            thingResponse.setURL(responseString);
+        }
+
+        return thingResponse;
+
+    }
+
+    private String readResponseToString(HttpResponse response) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        response.getEntity().writeTo(out);
+        String responseString = out.toString();
+        out.close();
         return responseString;
+    }
+
+    private boolean isXmlContentType(HttpResponse response) {
+        String re1 = "((?:[a-z][a-z]+))";    // application or text
+        String re2 = "(\\/xml)";    // Unix Path 1
+        Header contentType = response.getEntity().getContentType();
+        return contentType.getValue().matches(re1 + re2);
     }
 
     /**This method simulates asking an IoT thing for a service descriptor.
@@ -52,9 +102,14 @@ public class WebServiceMediator {
      * @return ThingResponse - a service descriptor or a url
      */
     public ThingResponse simulateCommunicationWithThing() {
-                ServiceDescriptor sd = new ServiceDescriptor(
-                        getFromURL(IOT_THING_SERVER_URL));
-        return new ThingResponse().setServiceDescriptor(sd);
+        ThingResponse thingResponse = null;
+        HttpResponse httpResponse = getFromURL(IOT_THING_SERVER_URL);
+        try {
+            thingResponse = getThingResponseFromHttpResponse(httpResponse);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return thingResponse;
     }
 
 }

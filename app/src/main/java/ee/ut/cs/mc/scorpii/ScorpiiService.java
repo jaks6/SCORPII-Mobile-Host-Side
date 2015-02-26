@@ -6,15 +6,26 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 public class ScorpiiService extends Service {
 
     private static final String TAG = ScorpiiService.class.getName();
+    private static final long THING_REQUEST_TIMEOUT = 5;
     private int devicesToSimulate;
     private boolean useCloud;
 
     CloudServiceMediator cloudService;
     WebServiceMediator webService;
     private final ScorpiiServiceBinder binder = new ScorpiiServiceBinder(this);
+    private ExecutorService pool;
 
     public ScorpiiService() {
         this.cloudService = new CloudServiceMediator();
@@ -44,27 +55,72 @@ public class ScorpiiService extends Service {
         Thread t = new Thread(){
             @Override
             public void run() {
-                ThingResponse[] responses = communicateWithThings(devicesToSimulate);
-                ServiceDescriptor[] descriptors = getServiceDescriptorsFromResponses(responses);
+                ArrayList<ThingResponse> responses = communicateWithThings(devicesToSimulate);
+                ArrayList<ServiceDescriptor> descriptors = getServiceDescriptorsFromResponses(responses);
+
+                stopSelf();
             }
         };
         t.start();
 
     }
 
-    private ServiceDescriptor[] getServiceDescriptorsFromResponses(ThingResponse[] responses) {
-        return new ServiceDescriptor[0];
+    private ArrayList<ServiceDescriptor> getServiceDescriptorsFromResponses(ArrayList<ThingResponse> responses) {
+        ArrayList<ServiceDescriptor> descriptors = new ArrayList<ServiceDescriptor>();
+        for (ThingResponse response : responses) {
+            try {
+                descriptors.add(response.getServiceDescriptor(webService));
+            } catch (ContextException e) {
+                e.printStackTrace();
+            }
+        }
+        return descriptors;
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        Log.i(TAG, "Trim memory");
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        Log.i(TAG, "Memory low");
     }
 
     /** Simulate connecting to a given number of
      * smart objects, and getting responses from them.
      * In our prototype, the smart object is emulated as
      * a server on a PC. */
-    public ThingResponse[] communicateWithThings(int devices){
-        ThingResponse responses[] = new ThingResponse[devices];
+    public ArrayList<ThingResponse> communicateWithThings(int devices) {
+        ArrayList<ThingResponse> responses = new ArrayList<ThingResponse>(devices);
+        Future futures[] = new Future[devices];
+
+        //Execute communication
+        pool = Executors.newFixedThreadPool(50);
         for (int i = 0; i < devices; i++) {
-            responses[i] = communicateWithThing();
+            futures[i] = pool.submit(new Callable() {
+                @Override
+                public ThingResponse call() throws Exception {
+                    return communicateWithThing();
+                }
+            });
         }
+
+        //Gather results (wait for threads to finish)
+        for (Future f : futures) {
+            try {
+                responses.add((ThingResponse) f.get(10, TimeUnit.SECONDS));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+            }
+        }
+
         return responses;
     }
 
@@ -73,11 +129,8 @@ public class ScorpiiService extends Service {
      * @return response provided by the smart object, either an URL or a service descriptor.
      */
     private ThingResponse communicateWithThing() {
-        // !TODO
-        //1. Connect to server
-        webService.simulateCommunicationWithThing();
-        //2. Get response
-        return new ThingResponse();
+        //Emulate
+        return webService.simulateCommunicationWithThing();
     }
 
     @Override

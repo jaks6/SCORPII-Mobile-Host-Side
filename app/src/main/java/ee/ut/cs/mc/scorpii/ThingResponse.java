@@ -1,11 +1,5 @@
 package ee.ut.cs.mc.scorpii;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
-
 import java.io.IOException;
 
 /**
@@ -21,14 +15,9 @@ import java.io.IOException;
  */
 public class ThingResponse {
     private String url;
-    private ScorpiiService s;
     private ServiceDescriptor serviceDescriptor;
 
     public ThingResponse() {
-    }
-
-    public ThingResponse(ServiceDescriptor serviceDescriptor) {
-
     }
 
     public String getUrl() {
@@ -40,13 +29,13 @@ public class ThingResponse {
      * this response only contains an URL.
      * @return
      */
-    public ServiceDescriptor getServiceDescriptor() throws ContextException {
+    public ServiceDescriptor getServiceDescriptor(WebServiceMediator webMediator) throws ContextException {
         if (this.serviceDescriptor != null) return serviceDescriptor;
         /** If no actual service descriptor is available, try to get it
          * from the URL (if provided) */
         else if (url != null) {
             try {
-                return getServiceDescriptorViaUrl(url);
+                return getServiceDescriptorViaUrl(url, webMediator);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -54,34 +43,12 @@ public class ThingResponse {
         return null;
     }
 
-    private ServiceDescriptor getServiceDescriptorViaUrl(String url) throws ContextException, IOException {
-        WebServiceMediator webMediator = getWebServiceMediator();
+    private ServiceDescriptor getServiceDescriptorViaUrl(String url, WebServiceMediator webMediator) throws ContextException, IOException {
         if (webMediator!= null){
-            String urlResponse =  webMediator.getFromURL(url);
+            String urlResponse = webMediator.getStringFromUrl(url);
             return new ServiceDescriptor(urlResponse);
         }
         else return null;
-    }
-
-    /** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder binder) {
-            ScorpiiService.ScorpiiServiceBinder b = (ScorpiiService.ScorpiiServiceBinder) binder;
-            s = b.getService();
-        }
-        public void onServiceDisconnected(ComponentName className) {
-            s = null;
-        }
-    };
-
-    private WebServiceMediator getWebServiceMediator() throws ContextException {
-        Context context = App.getContext();
-        if (context == null) throw new ContextException("context null!");
-        else {
-            Intent intent = new Intent(context,ScorpiiService.class);
-            context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-            return s.webService;
-        }
     }
 
     public ThingResponse setURL(String url){

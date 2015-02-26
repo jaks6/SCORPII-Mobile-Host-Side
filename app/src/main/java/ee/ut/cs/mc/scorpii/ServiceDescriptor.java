@@ -5,8 +5,15 @@ package ee.ut.cs.mc.scorpii;
  */
 public class ServiceDescriptor {
     private String content;
-    /** Constructor from HTTP response string */
-    public ServiceDescriptor(String s) {
-        this.content = s;
+
+    /**
+     * Constructor from HTTP response string
+     *
+     * @param xmlString
+     */
+    public ServiceDescriptor(String xmlString) {
+        this.content = xmlString;
     }
+
+
 }
