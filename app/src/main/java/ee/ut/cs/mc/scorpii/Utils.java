@@ -1,9 +1,5 @@
 package ee.ut.cs.mc.scorpii;
 
-import android.content.ComponentName;
-import android.content.ServiceConnection;
-import android.os.IBinder;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -65,8 +61,10 @@ public class Utils {
     public static final int INTENT_ACTION_START_FLOW = 1;
 
 
-    public static final int NO_OF_DEVICES = 2;
+    public static final int NO_OF_DEVICES = 5;
     public static final int INSTANCE_RUNNING = 0;
+    public static final String PARSE_ARGUMENT = "http://sweet.jpl.nasa.gov/2.2/quanTemperature.owl#Temperature";
+    public static final long TIMEOUT_PARSE = 6;
 
 
     public static byte[] getBytes(InputStream is) throws IOException {
@@ -90,19 +88,19 @@ public class Utils {
     }
 
     /** Defines callbacks for service binding, passed to bindService() */
-    public static class ScorpiiServiceConnection implements ServiceConnection {
-        ScorpiiService s;
-        ScorpiiServiceConnection(){
-        }
-        public void onServiceConnected(ComponentName className, IBinder binder) {
-            ScorpiiService.ScorpiiServiceBinder b = (ScorpiiService.ScorpiiServiceBinder) binder;
-            s = b.getService();
-        }
-        public void onServiceDisconnected(ComponentName className) {
-            s = null;
-        }
-        public ScorpiiService getService(){ return s; }
-    };
+//    public static class ScorpiiServiceConnection implements ServiceConnection {
+//        ScorpiiService s;
+//        ScorpiiServiceConnection(){
+//        }
+//        public void onServiceConnected(ComponentName className, IBinder binder) {
+//            ScorpiiService.ScorpiiServiceBinder b = (ScorpiiService.ScorpiiServiceBinder) binder;
+//            s = b.getService();
+//        }
+//        public void onServiceDisconnected(ComponentName className) {
+//            s = null;
+//        }
+//        public ScorpiiService getService(){ return s; }
+//    };
 
 
 }

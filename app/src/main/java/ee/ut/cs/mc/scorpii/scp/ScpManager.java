@@ -92,7 +92,9 @@ public class ScpManager {
         int retriesLeft = 15;
         try {
             session = jsch.getSession(username, host, port);
-        } catch (JSchException e) { e.printStackTrace(); }
+        } catch (JSchException e) {
+            e.printStackTrace();
+        }
 
         while (retriesLeft > 0 && !session.isConnected()) {
             retriesLeft--;
@@ -171,7 +173,9 @@ public class ScpManager {
         }
     }
 
-    /** Executes the given command on the remote machine and logs the response */
+    /**
+     * Executes the given command on the remote machine and logs the response
+     */
     public void sendCommand(String command) {
         Log.v(TAG, "sendCommand()");
         try {
@@ -219,7 +223,7 @@ public class ScpManager {
      *
      * @param resourceId
      */
-    public void sendFileFromRawResources(Context context,int resourceId) throws IOException {
+    public void sendFileFromRawResources(Context context, int resourceId) throws IOException {
         InputStream inputStream = context.getResources().openRawResource(resourceId);
         String resourceName = context.getResources().getResourceEntryName(resourceId);
         //Danger, available() might be unreliable, see http://developer.android.com/reference/java/io/InputStream.html#available%28%29
@@ -243,7 +247,6 @@ public class ScpManager {
     }
 
     public void sendInputStreamAsFile(InputStream inputStream, String fileName, long length) throws IOException {
-
         createSession();
         initFileTransfer(inputStream, fileName, length);
         killSession();

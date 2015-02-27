@@ -1,6 +1,7 @@
 package ee.ut.cs.mc.scorpii.aws;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.PropertiesCredentials;
@@ -10,11 +11,13 @@ import com.example.ec2.R;
 
 import java.io.InputStream;
 
+import ee.ut.cs.mc.scorpii.CloudServiceMediator;
 import ee.ut.cs.mc.scorpii.MainActivity;
 
 public class InstanceController {
 
 	private static final String EC2_AWS_CREDENTIALS_PROPERTIES = "/assets/AwsCredentials.properties";
+    private static final String TAG = InstanceController.class.getName();
 
     String endPoint;
 	AWSCredentials credentials;
@@ -22,14 +25,20 @@ public class InstanceController {
     Instance instance;
 
     Context context;
+    private CloudServiceMediator mediator;
 
-	
-	public InstanceController (Context context) throws Exception {
+
+    public InstanceController(Context context) throws Exception {
+        this(context, null);
+    }
+
+    public InstanceController(Context context, CloudServiceMediator cloudServiceMediator) throws Exception {
+        this.mediator = cloudServiceMediator;
         context = context.getApplicationContext();
 
-		InputStream credentialsInputStream = getClass().getResourceAsStream(EC2_AWS_CREDENTIALS_PROPERTIES);
+        InputStream credentialsInputStream = getClass().getResourceAsStream(EC2_AWS_CREDENTIALS_PROPERTIES);
 
-		credentials = new PropertiesCredentials(credentialsInputStream);
+        credentials = new PropertiesCredentials(credentialsInputStream);
         if (credentials.getAWSAccessKeyId().isEmpty() ||
                 credentials.getAWSSecretKey().isEmpty()){
             throw new Exception(context.getString(R.string.aws_credentials_missing_error));
@@ -38,7 +47,8 @@ public class InstanceController {
             ec2Client = new AmazonEC2Client(credentials);
 
         }
-	}
+
+    }
 
 
     public void terminateInstance() {
@@ -48,13 +58,13 @@ public class InstanceController {
         }
     }
 
-    public void launchInstance(LaunchConfiguration conf, MainActivity activity) {
+    public void launchInstance(LaunchConfiguration conf) {
         InstanceLauncher launcher = new InstanceLauncher(this,conf);
         if (instance == null){
-            RunInstanceTask instanceTask = new RunInstanceTask(activity);
+            RunInstanceTask instanceTask = new RunInstanceTask(mediator);
             instanceTask.execute(launcher);
         } else {
-            activity.appendToUiConsole("Did not launch new instance because current instance was not null.");
+            Log.i(TAG, "Did not launch new instance because current instance was not null.");
         }
     }
 

@@ -51,10 +51,15 @@ public class WebServiceMediator {
         String result = "";
         HttpResponse resp = getFromURL(url);
         try {
-            return readResponseToString(resp);
+            result = readResponseToString(resp);
+            if (resp.getEntity() != null) {
+                Log.v(TAG, "Closing connection in getStringFromUrl");
+                resp.getEntity().consumeContent();
+            }
         } catch (IOException e) {
             result += e.getMessage();
         }
+
         return result;
     }
 
@@ -106,10 +111,15 @@ public class WebServiceMediator {
         HttpResponse httpResponse = getFromURL(IOT_THING_SERVER_URL);
         try {
             thingResponse = getThingResponseFromHttpResponse(httpResponse);
+            httpResponse.getEntity().consumeContent();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return thingResponse;
     }
 
+    public boolean restartThingSim() {
+        HttpResponse resp = getFromURL(IOT_THING_SERVER_URL + "?restart");
+        return resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+    }
 }

@@ -43,18 +43,17 @@ public class MainActivity extends Activity {
 
     private void startScorpiiFlow() {
         Intent i = new Intent(this, ScorpiiService.class);
+        boolean useCloud = useCloudSwitch.isEnabled();
+
         i.putExtra(Utils.INTENT_KEY_ACTION, Utils.INTENT_ACTION_START_FLOW);
         i.putExtra(Utils.INTENT_KEY_NO_OF_DEVICES, Utils.NO_OF_DEVICES);
-        boolean useCloud = useCloudSwitch.isEnabled();
         i.putExtra(Utils.INTENT_KEY_USE_CLOUD, useCloud);
+
         startService(i);
     }
 
     private void startScorpiiService() {
-
-
         Intent i= new Intent(this, ScorpiiService.class);
-
         startService(i);
     }
 

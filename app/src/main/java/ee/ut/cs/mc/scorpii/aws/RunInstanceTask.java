@@ -9,15 +9,16 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 
-import ee.ut.cs.mc.scorpii.MainActivity;
+import ee.ut.cs.mc.scorpii.CloudServiceMediator;
+import ee.ut.cs.mc.scorpii.Utils;
 
 public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance> {
     private static final String TAG = RunInstanceTask.class.getName();
-    MainActivity activity;
+    private final CloudServiceMediator mediator;
 
-	public RunInstanceTask(MainActivity activity) {
-		this.activity = activity;
-	}
+    public RunInstanceTask(CloudServiceMediator mediator) {
+        this.mediator = mediator;
+    }
 	
 	@Override
 	protected Instance doInBackground(InstanceLauncher... arg0) {
@@ -58,7 +59,7 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
     @Override
     protected void onProgressUpdate(String... progress) {
         if(progress[0]==null) progress[0] = "null";
-        activity.appendToUiConsole(String.format("Waiting for instance to get ready;" +
+        Log.i(TAG, String.format("Waiting for instance to get ready;" +
                 "\n instance state = %s", progress[0]));
     }
 
@@ -67,24 +68,24 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
 	protected void onPostExecute(Instance result) {
         Log.i(TAG, "*** Instance is running");
 		if (result == null){
-			activity.appendToUiConsole("Instance launch failed.");
-		} else {
+            Log.i(TAG, "Instance launch failed.");
+        } else {
 //            Instance i = result.getReservation().getInstances().get(0);
             String publicIP = result.getPublicIpAddress();
-			activity.appendToUiConsole(String.format(
+            Log.i(TAG, String.format(
                     "Launched instance, " +
                             "\n ip = '%s'" +
                             "\n id = '%s'." +
                             "\n AMI ID = '%s'", publicIP, result.getInstanceId(), result.getImageId()));
 
-//            activity.onInstanceUpdate(result, Utils.INSTANCE_RUNNING);
-		}
+            mediator.onInstanceUpdate(result, Utils.INSTANCE_RUNNING);
+        }
 	}
 
 	@Override
 	protected void onPreExecute() {
-		activity.appendToUiConsole("Starting 'instance launch task'");
-	}
+        Log.i(TAG, "Starting 'instance launch task'");
+    }
 
 	
 
