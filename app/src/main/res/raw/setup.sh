@@ -20,7 +20,7 @@ wget $APACHEODE_URL -O ode.zip &
 ##move .war file from the zip to tomcat webapps
 wait
 unzip -j "ode.zip" "apache-ode-war-1.3.6/ode.war" -d "/var/lib/tomcat7/webapps/"
-service tomcat7 restart
+#service tomcat7 restart #is this even necessary?
 #cleanup
 rm ode.zip &
 #####################################################

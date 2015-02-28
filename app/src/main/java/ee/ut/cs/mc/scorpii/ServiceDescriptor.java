@@ -35,6 +35,11 @@ public class ServiceDescriptor implements Serializable {
         return builder.parse(new InputSource(new StringReader(content)));
     }
 
+    public boolean containsDefinition() {
+        return containsDefinition;
+    }
+
+
     public ServiceDescriptor setContainsDefinition(String definition) {
         boolean exists = false;
         try {

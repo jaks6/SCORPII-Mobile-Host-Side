@@ -51,6 +51,11 @@ public class Utils {
     // MIRRORS
     public static final String APACHEODE_MIRROR_URL = "http://mirror.symnds.com/software/Apache/ode/apache-ode-war-1.3.6.zip";
 
+
+    //Server urls
+//    static final String IOT_THING_SERVER_URL = "http://10.0.2.2:8080/scorpii_test1/thing";
+    static final String IOT_THING_SERVER_URL = "http://172.17.171.119:8080/scorpii_test1/thing";
+
     //INTENT KEYS
     public static final String INTENT_KEY_NO_OF_DEVICES = "NO_OF_DEVICES";
     public static final String INTENT_KEY_ACTION = "ACTION";
@@ -60,11 +65,12 @@ public class Utils {
     public static final int INTENT_ACTION_DEFAULT = 0;
     public static final int INTENT_ACTION_START_FLOW = 1;
 
-
-    public static final int NO_OF_DEVICES = 5;
+    //Use case constants
+    public static final int NO_OF_DEVICES = 20;
     public static final int INSTANCE_RUNNING = 0;
     public static final String PARSE_ARGUMENT = "http://sweet.jpl.nasa.gov/2.2/quanTemperature.owl#Temperature";
     public static final long TIMEOUT_PARSE = 6;
+    public static final String CLOUD_MOCK_URL = "http://172.17.171.119:8080/MhcmHandler/MainHandler";
 
 
     public static byte[] getBytes(InputStream is) throws IOException {

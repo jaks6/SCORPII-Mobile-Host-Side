@@ -5,8 +5,13 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.amazonaws.services.ec2.model.Instance;
+
+import org.json.JSONArray;
+
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -58,6 +63,7 @@ public class ScorpiiService extends Service {
         Thread t = new Thread(){
             @Override
             public void run() {
+                ArrayList<ServiceDescriptor> descriptors;
                 // restart IoT thing emulator server.
                 boolean restartSuccessful = webService.restartThingSim();
                 if (restartSuccessful) {
@@ -66,13 +72,13 @@ public class ScorpiiService extends Service {
                     ArrayList<ThingResponse> responses = communicateWithThings(devicesToSimulate);
 
                     if (useCloud) {
-                        ArrayList<ServiceDescriptor> descriptors = delegateToCloud(responses);
+                        descriptors = offloadUrlsAndParseSdsLocally(responses, true);
                     } else {
                         // Extract SD-s from responses, use backups servers to obtain SD-s where necessary
                         Log.i(TAG, "~~~~Starting extraction of SD-s from responses.");
-                        ArrayList<ServiceDescriptor> descriptors = getServiceDescriptorsFromResponses(responses);
-
+                        descriptors = getServiceDescriptorsFromResponses(responses);
                         parseDescriptors(descriptors, Utils.PARSE_ARGUMENT);
+                        descriptors = filterMatchingSDs(descriptors);
                     }
                     Log.i(TAG, "~~~~Flow finished");
                 } else {
@@ -85,14 +91,30 @@ public class ScorpiiService extends Service {
         t.start();
     }
 
-    private ArrayList<ServiceDescriptor> delegateToCloud(ArrayList<ThingResponse> responses) {
+
+    private ArrayList<ServiceDescriptor> delegateToCloud(JSONArray responses) {
+        ArrayList<ServiceDescriptor> result;
         cloudService.launchInstance();
-        return null;
+        Instance i = cloudService.getInstanceController().getInstance();
+        while (i == null) {
+            try {
+                Thread.sleep(750);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            i = cloudService.getInstanceController().getInstance();
+            //i.getPublicIpAddress();
+        }
+        result = webService.sendUrlsToCloud(responses, i.getPublicIpAddress());
+
+        return result;
     }
 
     /**
      * Goes through the provided descriptors and parses each one to see
-     * if it contains the wanted output definition
+     * if it contains the wanted output definition. Changes the argument
+     * arraylist. This executes on
+     * a separate thread pool.
      *
      * @param descriptors
      */
@@ -123,6 +145,65 @@ public class ScorpiiService extends Service {
         }
     }
 
+    /**
+     * split the ThingResponses into two: based on the fact
+     * whether they have actual service descriptor content or just an url.
+     * The Url ones are sent to a cloud service, where they are filtered and parsed.
+     * The rest of the ones are processed locally.
+     *
+     * @param responses
+     * @param useCloud
+     * @return
+     */
+    private ArrayList<ServiceDescriptor> offloadUrlsAndParseSdsLocally(
+            ArrayList<ThingResponse> responses, boolean useCloud) {
+
+        final ArrayList<ServiceDescriptor> descriptors = new ArrayList<ServiceDescriptor>();
+        final JSONArray responsesToDelegate = new JSONArray();
+
+        //Separate url references from actual SD-s
+        for (ThingResponse response : responses) {
+            if (response.getUrl() != null) {
+                responsesToDelegate.put(response.getUrl());
+            } else {
+                //extract SD from response locally
+                descriptors.add(response.getServiceDescriptor(null));
+            }
+        }
+
+        //Parse actual SD-s locally, and delegate url ones to cloud for parsing
+        pool = Executors.newFixedThreadPool(5);
+        Future cloudResult = pool.submit(new Callable() {
+            @Override
+            public ArrayList<ServiceDescriptor> call() throws Exception {
+                return delegateToCloud(responsesToDelegate);
+            }
+        });
+
+        Future localResult = pool.submit(new Callable() {
+            @Override
+            public ArrayList<ServiceDescriptor> call() throws Exception {
+                //parse locally and return
+                parseDescriptors(descriptors, Utils.PARSE_ARGUMENT);
+                return filterMatchingSDs(descriptors);
+            }
+        });
+
+        ArrayList<ServiceDescriptor> cloudResults = null;
+        ArrayList<ServiceDescriptor> localResults = null;
+        try {
+            cloudResults = (ArrayList<ServiceDescriptor>) cloudResult.get(THING_REQUEST_TIMEOUT, TimeUnit.SECONDS);
+            localResults = (ArrayList<ServiceDescriptor>) localResult.get(THING_REQUEST_TIMEOUT, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+        cloudResults.addAll(localResults);
+        return cloudResults;
+    }
     /**
      * Go through an array of ThingResponses and obtain a service descriptor (SD) from each one.
      * The ThingResponse might contain the SD itself, or an URL referencing to a SD. In the latter
@@ -198,6 +279,17 @@ public class ScorpiiService extends Service {
         }
         return responses;
     }
+
+    public ArrayList<ServiceDescriptor> filterMatchingSDs(ArrayList<ServiceDescriptor> descriptors) {
+        ArrayList<ServiceDescriptor> result = new ArrayList<ServiceDescriptor>();
+        for (ServiceDescriptor sd : descriptors) {
+            if (sd.containsDefinition()) {
+                result.add(sd);
+            }
+        }
+        return result;
+    }
+
 
     /** Connect to a single smart object and get response from it.
      * @return response provided by the smart object, either an URL or a service descriptor.

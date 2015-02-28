@@ -10,16 +10,24 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
 
 /**
  * Created by jaks on 20/02/15.
  */
 public class WebServiceMediator {
 
-    static final String IOT_THING_SERVER_URL = "http://10.0.2.2:8080/scorpii_test1/thing";
+
     static final String TAG = WebServiceMediator.class.getName();
 
 
@@ -108,7 +116,7 @@ public class WebServiceMediator {
      */
     public ThingResponse simulateCommunicationWithThing() {
         ThingResponse thingResponse = null;
-        HttpResponse httpResponse = getFromURL(IOT_THING_SERVER_URL);
+        HttpResponse httpResponse = getFromURL(Utils.IOT_THING_SERVER_URL);
         try {
             thingResponse = getThingResponseFromHttpResponse(httpResponse);
             httpResponse.getEntity().consumeContent();
@@ -119,7 +127,91 @@ public class WebServiceMediator {
     }
 
     public boolean restartThingSim() {
-        HttpResponse resp = getFromURL(IOT_THING_SERVER_URL + "?restart");
+        HttpResponse resp = getFromURL(Utils.IOT_THING_SERVER_URL + "?restart");
         return resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+    }
+
+    public ArrayList<ServiceDescriptor> sendUrlsToCloud(JSONArray json, String server_address) {
+        ArrayList<ServiceDescriptor> result = null;
+        Object reply;
+        URL url;
+        HttpURLConnection urlConn;
+        try {
+            url = new URL(server_address);
+            urlConn = (HttpURLConnection) url.openConnection();
+            urlConn.setDoInput(true);
+            urlConn.setDoOutput(true);
+            urlConn.setRequestMethod("POST");
+            urlConn.setRequestProperty("Content-Type", "application/json");
+            urlConn.connect();
+
+            DataOutputStream output;
+
+            output = new DataOutputStream(urlConn.getOutputStream());
+            /*Construct the POST data.*/
+            String content = json.toString();
+
+            /* Send the request data.*/
+            output.writeBytes(content);
+            output.flush();
+            output.close();
+
+
+            //receive reply
+            ObjectInputStream objIn = new ObjectInputStream(urlConn.getInputStream());
+            reply = objIn.readObject();
+            objIn.close();
+
+            result = (ArrayList<ServiceDescriptor>) reply;
+
+
+        } catch (Exception ex) {
+            // it is ok if we get an exception here
+            // that means that there is no object being returned
+            System.out.println("No Object Returned");
+            if (!(ex instanceof EOFException))
+                ex.printStackTrace();
+            System.err.println("*");
+        }
+        return result;
+
+
+    }
+
+
+    public Object sendThingResponsesToCloud(ArrayList<ThingResponse> responses, String server_address) {
+        Object reply = null;
+        HttpURLConnection cox = null;
+        try {
+            URL url = new URL(server_address);
+            cox = (HttpURLConnection) url.openConnection();
+            cox.setDoOutput(true);
+            cox.setDoInput(true);
+            cox.setInstanceFollowRedirects(false);
+            cox.setRequestMethod("POST");
+            cox.setUseCaches(false);
+
+            ObjectOutputStream oos = new ObjectOutputStream(cox.getOutputStream());
+            oos.writeObject(responses);
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //receive reply
+        try {
+            ObjectInputStream objIn = new ObjectInputStream(cox.getInputStream());
+            reply = objIn.readObject();
+            objIn.close();
+        } catch (Exception ex) {
+            // it is ok if we get an exception here
+            // that means that there is no object being returned
+            System.out.println("No Object Returned");
+            if (!(ex instanceof EOFException))
+                ex.printStackTrace();
+            System.err.println("*");
+        }
+        return reply;
+
+
     }
 }

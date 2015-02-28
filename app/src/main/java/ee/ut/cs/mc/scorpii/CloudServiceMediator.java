@@ -18,6 +18,7 @@ import ee.ut.cs.mc.scorpii.scp.ScpManager;
  */
 public class CloudServiceMediator implements OnAwsUpdate {
     public static final String TAG = CloudServiceMediator.class.getName();
+
     InstanceController instanceController;
     Context ctx;
 
@@ -60,7 +61,7 @@ public class CloudServiceMediator implements OnAwsUpdate {
     public void onInstanceUpdate(Instance i, int stateCode) {
         if (instanceController != null) instanceController.setInstance(i);
         if (stateCode == Utils.INSTANCE_RUNNING) {
-            new SCPTaskSnapshot().execute();
+            //new SCPTaskSnapshot().execute();
         }
     }
 
@@ -104,6 +105,10 @@ public class CloudServiceMediator implements OnAwsUpdate {
         String command3 = (
                 "sudo rm -f /var/lib/tomcat7/webapps/ode/WEB-INF/processes/*.deployed");
         return String.format("%s && %s && %s", command1, command2, command3);
+    }
+
+    public InstanceController getInstanceController() {
+        return instanceController;
     }
 }
 
