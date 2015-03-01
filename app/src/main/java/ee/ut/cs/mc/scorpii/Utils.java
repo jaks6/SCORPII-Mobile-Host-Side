@@ -36,7 +36,7 @@ public class Utils {
 
     //EC2 AMIs
     public static final String AMI_ODE_SNAPSHOT = "ami-905c0bf8";
-    public static final String AMI_UBUNTU = "ami-98aa1cf0";
+    public static final String AMI_UBUNTU = "ami-86edb2ee";
 
     //For SSH-ing into EC2 instance
     public static final String SHELL_USER = "ubuntu";
@@ -54,7 +54,7 @@ public class Utils {
 
     //Server urls
 //    static final String IOT_THING_SERVER_URL = "http://10.0.2.2:8080/scorpii_test1/thing";
-    static final String IOT_THING_SERVER_URL = "http://172.17.171.119:8080/scorpii_test1/thing";
+    static final String IOT_THING_SERVER_URL = "http://192.168.1.79:8080/scorpii_test1/thing";
 
     //INTENT KEYS
     public static final String INTENT_KEY_NO_OF_DEVICES = "NO_OF_DEVICES";
@@ -66,7 +66,7 @@ public class Utils {
     public static final int INTENT_ACTION_START_FLOW = 1;
 
     //Use case constants
-    public static final int NO_OF_DEVICES = 20;
+    public static final int NO_OF_DEVICES = 300;
     public static final int INSTANCE_RUNNING = 0;
     public static final String PARSE_ARGUMENT = "http://sweet.jpl.nasa.gov/2.2/quanTemperature.owl#Temperature";
     public static final long TIMEOUT_PARSE = 6;
@@ -91,6 +91,14 @@ public class Utils {
             buf = bos.toByteArray();
         }
         return buf;
+    }
+
+    public static void sleep(int i) {
+        try {
+            Thread.sleep(i);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /** Defines callbacks for service binding, passed to bindService() */

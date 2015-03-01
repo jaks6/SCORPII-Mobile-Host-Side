@@ -20,6 +20,12 @@ public class CloudServiceMediator implements OnAwsUpdate {
     public static final String TAG = CloudServiceMediator.class.getName();
 
     InstanceController instanceController;
+
+    public boolean isScpCompletedFlag() {
+        return scpCompletedFlag;
+    }
+
+    boolean scpCompletedFlag = false;
     Context ctx;
 
     public CloudServiceMediator() {
@@ -29,15 +35,13 @@ public class CloudServiceMediator implements OnAwsUpdate {
 
     public void launchInstance() {
         Log.i(TAG, "*** Launch Instance method");
-        String machine_AMI;
-        machine_AMI = Utils.AMI_ODE_SNAPSHOT;
         try {
             instanceController = createInstanceControllerIfDoesntExist();
             instanceController.launchInstance(new LaunchConfiguration(
-                    "t1.micro", //instance type
-                    machine_AMI, // machine image
+                    "t2.medium", //instance type
+                    Utils.AMI_UBUNTU, // machine image
                     "jakob.mass", // key
-                    "sg-001c416a" //security group
+                    "sg-fd262b98" //security group
             ));
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
@@ -61,7 +65,7 @@ public class CloudServiceMediator implements OnAwsUpdate {
     public void onInstanceUpdate(Instance i, int stateCode) {
         if (instanceController != null) instanceController.setInstance(i);
         if (stateCode == Utils.INSTANCE_RUNNING) {
-            //new SCPTaskSnapshot().execute();
+            new SCPTaskSnapshot().execute();
         }
     }
 
@@ -91,6 +95,7 @@ public class CloudServiceMediator implements OnAwsUpdate {
 
         @Override
         protected void onPostExecute(Void v) {
+            scpCompletedFlag = true;
             Log.d("*** SCPTaskSnapshot", "Finished");
         }
     }

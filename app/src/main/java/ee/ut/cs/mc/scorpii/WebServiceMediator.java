@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -29,6 +31,8 @@ public class WebServiceMediator {
 
 
     static final String TAG = WebServiceMediator.class.getName();
+    private static final int CONNECTION_TIMEOUT_MILLIS = 3500; //
+    private static final int CONNECTION_RETRIES = 100;
 
 
     public HttpResponse getFromURL(String url) {
@@ -132,10 +136,12 @@ public class WebServiceMediator {
     }
 
     public ArrayList<ServiceDescriptor> sendUrlsToCloud(JSONArray json, String server_address) {
+        Log.v(TAG, "SendUrlsToCLoud()");
         ArrayList<ServiceDescriptor> result = null;
         Object reply;
         URL url;
         HttpURLConnection urlConn;
+        int retriesLeft = CONNECTION_RETRIES;
         try {
             url = new URL(server_address);
             urlConn = (HttpURLConnection) url.openConnection();
@@ -143,8 +149,6 @@ public class WebServiceMediator {
             urlConn.setDoOutput(true);
             urlConn.setRequestMethod("POST");
             urlConn.setRequestProperty("Content-Type", "application/json");
-            urlConn.connect();
-
             DataOutputStream output;
 
             output = new DataOutputStream(urlConn.getOutputStream());
@@ -212,6 +216,29 @@ public class WebServiceMediator {
         }
         return reply;
 
+
+    }
+
+    public void getTilServerResponds(String url) {
+        int retries = CONNECTION_RETRIES;
+        while (retries > 0) {
+            try {
+                Log.v(TAG, "Trying to connect to cloud web server, retries left:" + retries);
+                retries--;
+                HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+                con.setRequestMethod("HEAD");
+                con.setConnectTimeout(CONNECTION_TIMEOUT_MILLIS); //set timeout to 5 seconds
+                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) return;
+            } catch (ProtocolException e) {
+            } catch (MalformedURLException e) {
+            } catch (IOException e) {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
 
     }
 }

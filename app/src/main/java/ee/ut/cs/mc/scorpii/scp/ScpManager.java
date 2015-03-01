@@ -89,7 +89,7 @@ public class ScpManager {
 
     public void createSession() {
         Log.i(TAG, "createSession() ");
-        int retriesLeft = 15;
+        int retriesLeft = 45;
         try {
             session = jsch.getSession(username, host, port);
         } catch (JSchException e) {
@@ -99,7 +99,7 @@ public class ScpManager {
         while (retriesLeft > 0 && !session.isConnected()) {
             retriesLeft--;
             try {
-                session.connect(1500);
+                session.connect(2000);
             } catch (JSchException e) {
 //                Log.e(TAG, e.toString());
             }

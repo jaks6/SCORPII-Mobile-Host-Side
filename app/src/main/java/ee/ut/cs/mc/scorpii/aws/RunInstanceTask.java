@@ -47,7 +47,7 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
                     instanceIP = instance.getPublicIpAddress();
                 }
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -59,8 +59,8 @@ public class RunInstanceTask extends AsyncTask<InstanceLauncher, String,Instance
     @Override
     protected void onProgressUpdate(String... progress) {
         if(progress[0]==null) progress[0] = "null";
-        Log.i(TAG, String.format("Waiting for instance to get ready;" +
-                "\n instance state = %s", progress[0]));
+//        Log.i(TAG, String.format("Waiting for instance to get ready;" +
+//                "\n instance state = %s", progress[0]));
     }
 
 

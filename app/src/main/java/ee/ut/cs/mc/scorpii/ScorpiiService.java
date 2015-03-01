@@ -23,6 +23,7 @@ public class ScorpiiService extends Service {
     private static final String TAG = ScorpiiService.class.getName();
     private static final long THING_REQUEST_TIMEOUT = 5;
     private static final long SD_FROM_URL_TIMEOUT = 5;
+    private static final long CLOUD_TIMEOUT = 360;
     private int devicesToSimulate;
     private boolean useCloud;
 
@@ -59,10 +60,14 @@ public class ScorpiiService extends Service {
     }
 
     public void doFlow() {
-        Log.i(TAG, "Starting flow");
+
         Thread t = new Thread(){
             @Override
             public void run() {
+                Log.i(TAG, "STARTING FLOW IN 6 SECONDS");
+                Utils.sleep(6000);
+                Log.i(TAG, "Starting flow");
+
                 ArrayList<ServiceDescriptor> descriptors;
                 // restart IoT thing emulator server.
                 boolean restartSuccessful = webService.restartThingSim();
@@ -95,17 +100,21 @@ public class ScorpiiService extends Service {
     private ArrayList<ServiceDescriptor> delegateToCloud(JSONArray responses) {
         ArrayList<ServiceDescriptor> result;
         cloudService.launchInstance();
-        Instance i = cloudService.getInstanceController().getInstance();
-        while (i == null) {
+        Instance i = null;
+        //wait til scp tasks are done (bpel uploading etc)
+        while (!cloudService.scpCompletedFlag) {
             try {
-                Thread.sleep(750);
+                Thread.sleep(1500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            i = cloudService.getInstanceController().getInstance();
-            //i.getPublicIpAddress();
         }
-        result = webService.sendUrlsToCloud(responses, i.getPublicIpAddress());
+        i = cloudService.getInstanceController().getInstance();
+        String instanceUrl = String.format("http://%s:8080/MhcmHandler/", i.getPublicIpAddress());
+        Log.i(TAG, instanceUrl);
+        //do a get to see if webserver is up
+        webService.getTilServerResponds(instanceUrl);
+        result = webService.sendUrlsToCloud(responses, instanceUrl);
 
         return result;
     }
@@ -192,7 +201,7 @@ public class ScorpiiService extends Service {
         ArrayList<ServiceDescriptor> cloudResults = null;
         ArrayList<ServiceDescriptor> localResults = null;
         try {
-            cloudResults = (ArrayList<ServiceDescriptor>) cloudResult.get(THING_REQUEST_TIMEOUT, TimeUnit.SECONDS);
+            cloudResults = (ArrayList<ServiceDescriptor>) cloudResult.get(CLOUD_TIMEOUT, TimeUnit.SECONDS);
             localResults = (ArrayList<ServiceDescriptor>) localResult.get(THING_REQUEST_TIMEOUT, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
