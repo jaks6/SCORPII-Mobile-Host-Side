@@ -37,18 +37,28 @@ public class MainActivity extends Activity {
         scrollView = (ScrollView) findViewById(R.id.scrollView);
 
 
-        startScorpiiService();
-        startScorpiiFlow();
+//        startScorpiiService();
+//        start3GTest(null);
+//        startScorpiiFlow();
     }
 
     private void startScorpiiFlow() {
         Intent i = new Intent(this, ScorpiiService.class);
-        boolean useCloud = useCloudSwitch.isEnabled();
+//        boolean useCloud = useCloudSwitch.isEnabled();
 
+
+        boolean useCloud = Utils.USE_CLOUD;
         i.putExtra(Utils.INTENT_KEY_ACTION, Utils.INTENT_ACTION_START_FLOW);
         i.putExtra(Utils.INTENT_KEY_NO_OF_DEVICES, Utils.NO_OF_DEVICES);
         i.putExtra(Utils.INTENT_KEY_USE_CLOUD, useCloud);
 
+        startService(i);
+    }
+
+
+    public void start3GTest(View v) {
+        Intent i = new Intent(this, ScorpiiService.class);
+        i.putExtra(Utils.INTENT_KEY_ACTION, Utils.INTENT_ACTION_3gTEST);
         startService(i);
     }
 

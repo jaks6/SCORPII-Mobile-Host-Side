@@ -54,7 +54,8 @@ public class Utils {
 
     //Server urls
 //    static final String IOT_THING_SERVER_URL = "http://10.0.2.2:8080/scorpii_test1/thing";
-    static final String IOT_THING_SERVER_URL = "http://192.168.1.79:8080/scorpii_test1/thing";
+    //static final String IOT_THING_SERVER_URL = "http://192.168.1.79:8080/scorpii_test1/thing";
+    static final String IOT_THING_SERVER_URL = "http://172.17.171.119:8080/scorpii_test1/thing";
 
     //INTENT KEYS
     public static final String INTENT_KEY_NO_OF_DEVICES = "NO_OF_DEVICES";
@@ -64,13 +65,19 @@ public class Utils {
     //Intent actions
     public static final int INTENT_ACTION_DEFAULT = 0;
     public static final int INTENT_ACTION_START_FLOW = 1;
+    public static int INTENT_ACTION_3gTEST = 2;
 
     //Use case constants
-    public static final int NO_OF_DEVICES = 300;
+    public static final int NO_OF_DEVICES = 450;
+    public static final boolean USE_CLOUD = true;
     public static final int INSTANCE_RUNNING = 0;
     public static final String PARSE_ARGUMENT = "http://sweet.jpl.nasa.gov/2.2/quanTemperature.owl#Temperature";
-    public static final long TIMEOUT_PARSE = 6;
+    public static final long TIMEOUT_PARSE = 9;
     public static final String CLOUD_MOCK_URL = "http://172.17.171.119:8080/MhcmHandler/MainHandler";
+    public static final boolean BENCHMARK_CLOUD_WITHOUT_INSTANCHE_LAUNCH = true;
+    public static final String BENCHMARK_STATIC_INSTANCE_HANDLERURL = String.format("http://%s:8080/MhcmHandler/", "52.1.72.147");
+    ;
+
 
 
     public static byte[] getBytes(InputStream is) throws IOException {

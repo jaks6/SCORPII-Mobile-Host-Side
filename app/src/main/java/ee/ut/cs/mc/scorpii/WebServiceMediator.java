@@ -23,6 +23,11 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by jaks on 20/02/15.
@@ -55,7 +60,6 @@ public class WebServiceMediator {
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
         }
-
         return response;
     }
 
@@ -65,7 +69,6 @@ public class WebServiceMediator {
         try {
             result = readResponseToString(resp);
             if (resp.getEntity() != null) {
-                Log.v(TAG, "Closing connection in getStringFromUrl");
                 resp.getEntity().consumeContent();
             }
         } catch (IOException e) {
@@ -136,7 +139,7 @@ public class WebServiceMediator {
     }
 
     public ArrayList<ServiceDescriptor> sendUrlsToCloud(JSONArray json, String server_address) {
-        Log.v(TAG, "SendUrlsToCLoud()");
+        Log.v(TAG, "~~~~ Sending to cloud");
         ArrayList<ServiceDescriptor> result = null;
         Object reply;
         URL url;
@@ -239,6 +242,44 @@ public class WebServiceMediator {
                 }
             }
         }
+
+    }
+
+    public void do3Gtest(final int reps) {
+        final ExecutorService pool = Executors.newFixedThreadPool(50);
+        final Future futures[] = new Future[reps];
+
+
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                for (int j = 0; j < 5; j++) {
+                    Log.i(TAG, "--Sleep 10s");
+                    Utils.sleep(5000);
+                    Log.i(TAG, "---Start of 3G ---, reps=" + reps);
+                    for (int i = 0; i < reps; i++) {
+                        futures[i] = pool.submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                getStringFromUrl("https://dl.dropboxusercontent.com/u/59860036/hello.xml");
+                            }
+                        });
+                    }
+                    for (Future f : futures) {
+                        try {
+                            // get() is a blocking call here, which timeouts according to the argument
+                            f.get(15, TimeUnit.SECONDS);
+                        } catch (TimeoutException e) {
+                            Log.e(TAG, String.format("Timeout! \n%d", e.getMessage()));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    Log.i(TAG, "---End of 3G ---");
+                }
+            }
+        };
+        t.start();
 
     }
 }

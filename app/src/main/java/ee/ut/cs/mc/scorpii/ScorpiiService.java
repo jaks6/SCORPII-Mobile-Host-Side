@@ -2,6 +2,7 @@ package ee.ut.cs.mc.scorpii;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.BatteryManager;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -26,7 +27,7 @@ public class ScorpiiService extends Service {
     private static final long CLOUD_TIMEOUT = 360;
     private int devicesToSimulate;
     private boolean useCloud;
-
+    BatteryManager mBatteryManager;
     CloudServiceMediator cloudService;
     WebServiceMediator webService;
     private ExecutorService pool;
@@ -47,33 +48,35 @@ public class ScorpiiService extends Service {
         int action = intent.getIntExtra(Utils.INTENT_KEY_ACTION, Utils.INTENT_ACTION_DEFAULT);
 
         if (action == Utils.INTENT_ACTION_DEFAULT){
+            //Do default stuff
+        } else if (action == Utils.INTENT_ACTION_3gTEST) {
 
+            webService.do3Gtest(100);
         } else if (action == Utils.INTENT_ACTION_START_FLOW) {
             //!TODO Check if cloud mode
             devicesToSimulate = intent.getIntExtra(Utils.INTENT_KEY_NO_OF_DEVICES, 0);
             useCloud = intent.getBooleanExtra(Utils.INTENT_KEY_USE_CLOUD,false);
-
             doFlow();
+
         }
 
         return Service.START_STICKY;
     }
 
     public void doFlow() {
-
         Thread t = new Thread(){
             @Override
             public void run() {
-                Log.i(TAG, "STARTING FLOW IN 6 SECONDS");
-                Utils.sleep(6000);
-                Log.i(TAG, "Starting flow");
-
                 ArrayList<ServiceDescriptor> descriptors;
+                Log.i(TAG, "~~~~Sleeping!.");
+                Utils.sleep(1000);
+                Log.i(TAG, "~~~~STARTING Flow ");
+
                 // restart IoT thing emulator server.
                 boolean restartSuccessful = webService.restartThingSim();
                 if (restartSuccessful) {
                     // Get set of responses
-                    Log.i(TAG, "~~~~Starting communication with IoT things.");
+                    Log.i(TAG, "*Starting communication with IoT things.");
                     ArrayList<ThingResponse> responses = communicateWithThings(devicesToSimulate);
 
                     if (useCloud) {
@@ -86,10 +89,10 @@ public class ScorpiiService extends Service {
                         descriptors = filterMatchingSDs(descriptors);
                     }
                     Log.i(TAG, "~~~~Flow finished");
+                    descriptors = null;
                 } else {
                     Log.e(TAG, "-!-!- Could not restart thing emulator");
                 }
-
                 stopSelf();
             }
         };
@@ -99,18 +102,23 @@ public class ScorpiiService extends Service {
 
     private ArrayList<ServiceDescriptor> delegateToCloud(JSONArray responses) {
         ArrayList<ServiceDescriptor> result;
-        cloudService.launchInstance();
-        Instance i = null;
-        //wait til scp tasks are done (bpel uploading etc)
-        while (!cloudService.scpCompletedFlag) {
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        String instanceUrl;
+        if (!Utils.BENCHMARK_CLOUD_WITHOUT_INSTANCHE_LAUNCH) {
+            cloudService.launchInstance();
+            Instance i = null;
+            //wait til scp tasks are done (bpel uploading etc)
+            while (!cloudService.scpCompletedFlag) {
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
+            i = cloudService.getInstanceController().getInstance();
+            instanceUrl = String.format("http://%s:8080/MhcmHandler/", i.getPublicIpAddress());
+        } else {
+            instanceUrl = Utils.BENCHMARK_STATIC_INSTANCE_HANDLERURL;
         }
-        i = cloudService.getInstanceController().getInstance();
-        String instanceUrl = String.format("http://%s:8080/MhcmHandler/", i.getPublicIpAddress());
         Log.i(TAG, instanceUrl);
         //do a get to see if webserver is up
         webService.getTilServerResponds(instanceUrl);
@@ -213,6 +221,13 @@ public class ScorpiiService extends Service {
         cloudResults.addAll(localResults);
         return cloudResults;
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "Ondestroy");
+    }
+
     /**
      * Go through an array of ThingResponses and obtain a service descriptor (SD) from each one.
      * The ThingResponse might contain the SD itself, or an URL referencing to a SD. In the latter
@@ -226,7 +241,6 @@ public class ScorpiiService extends Service {
         ArrayList<ServiceDescriptor> descriptors = new ArrayList<ServiceDescriptor>();
         pool = Executors.newFixedThreadPool(50);
         Future futures[] = new Future[responsesLength];
-
 
         for (int i = 0; i < responsesLength; i++) {
             final ThingResponse response = responses.get(i);
